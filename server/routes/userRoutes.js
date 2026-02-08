@@ -182,4 +182,31 @@ router.post('/:id/backlog', protect, async (req, res) => {
     }
 });
 
+// @route   PUT /api/users/:id/academic-stats
+// @desc    Update Student Academic Stats (CPI/Credits)
+// @access  Private (Teacher/Admin)
+router.put('/:id/academic-stats', protect, async (req, res) => {
+    try {
+        if (req.user.role !== 'teacher' && req.user.role !== 'admin' && req.user.role !== 'ceo') {
+            return res.status(403).json({ message: 'Not authorized' });
+        }
+
+        const { cpi, totalCredits } = req.body;
+        const user = await User.findById(req.params.id);
+
+        if (user) {
+            user.academicStats = {
+                cpi: Number(cpi) || user.academicStats.cpi,
+                totalCredits: Number(totalCredits) || user.academicStats.totalCredits
+            };
+            await user.save();
+            res.json(user.academicStats);
+        } else {
+            res.status(404).json({ message: 'User not found' });
+        }
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
 module.exports = router;

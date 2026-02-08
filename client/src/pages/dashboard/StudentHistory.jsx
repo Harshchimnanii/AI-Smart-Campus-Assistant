@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Search, AlertTriangle, User, CheckCircle, XCircle, ChevronRight, Plus, X } from 'lucide-react';
+import { Search, AlertTriangle, User, CheckCircle, XCircle, ChevronRight, Plus, X, Edit2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 const StudentHistory = () => {
@@ -19,6 +19,45 @@ const StudentHistory = () => {
     // Form Data
     const [ufmData, setUfmData] = useState({ subject: '', reason: '', actionTaken: '' });
     const [backlogData, setBacklogData] = useState({ subject: '', semester: '', status: 'active' });
+
+    // Stats Editing
+    const [showStatsModal, setShowStatsModal] = useState(false);
+    const [statsData, setStatsData] = useState({ cpi: 0, totalCredits: 0 });
+
+    const handleOpenStatsModal = () => {
+        if (selectedStudent) {
+            setStatsData({
+                cpi: selectedStudent.academicStats?.cpi || 0,
+                totalCredits: selectedStudent.academicStats?.totalCredits || 0
+            });
+            setShowStatsModal(true);
+        }
+    };
+
+    const handleUpdateStats = async (e) => {
+        e.preventDefault();
+        setFormLoading(true);
+        try {
+            const config = { headers: { Authorization: `Bearer ${user.token}` } };
+            const { data } = await axios.put(`${import.meta.env.VITE_API_URL}/api/users/${selectedStudent._id}/academic-stats`, statsData, config);
+
+            // Update local state
+            const updatedStudent = {
+                ...selectedStudent,
+                academicStats: data
+            };
+            setSelectedStudent(updatedStudent);
+            setStudents(students.map(s => s._id === updatedStudent._id ? updatedStudent : s));
+
+            setShowStatsModal(false);
+            alert('Academic Stats Updated');
+        } catch (error) {
+            console.error(error);
+            alert('Failed to update stats');
+        } finally {
+            setFormLoading(false);
+        }
+    };
 
     useEffect(() => {
         fetchStudents();
@@ -111,7 +150,7 @@ const StudentHistory = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Left Column: Student List & Search */}
                 <div className="lg:col-span-1 space-y-4">
-                    <div className="bg-white dark:bg-gray-800 p-4 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                    <div className="bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl p-4 rounded-2xl shadow-sm border border-white/20 dark:border-white/10">
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
                             <input
@@ -119,27 +158,27 @@ const StudentHistory = () => {
                                 placeholder="Search by Name or Roll No..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-10 p-3 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                className="w-full pl-10 p-3 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-black/30 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500/50 outline-none placeholder:text-gray-500"
                             />
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden max-h-[600px] overflow-y-auto">
+                    <div className="bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl rounded-2xl shadow-sm border border-white/20 dark:border-white/10 overflow-hidden max-h-[600px] overflow-y-auto custom-scrollbar">
                         {loading ? (
                             <p className="p-6 text-center text-gray-500">Loading students...</p>
                         ) : filteredStudents.length === 0 ? (
                             <p className="p-6 text-center text-gray-500">No students found.</p>
                         ) : (
-                            <div className="divide-y divide-gray-100 dark:divide-gray-700">
+                            <div className="divide-y divide-gray-100 dark:divide-white/5">
                                 {filteredStudents.map(student => (
                                     <button
                                         key={student._id}
                                         onClick={() => handleSelectStudent(student)}
-                                        className={`w-full p-4 flex items-center justify-between hover:bg-gray-50 dark:hover:bg-gray-700/50 transition text-left
-                                            ${selectedStudent?._id === student._id ? 'bg-indigo-50 dark:bg-indigo-900/30' : ''}`}
+                                        className={`w-full p-4 flex items-center justify-between hover:bg-indigo-50/50 dark:hover:bg-white/5 transition text-left
+                                            ${selectedStudent?._id === student._id ? 'bg-indigo-50 dark:bg-indigo-500/20' : ''}`}
                                     >
                                         <div className="flex items-center gap-3">
-                                            <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-bold text-sm">
+                                            <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-500/20 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-bold text-sm border border-indigo-200 dark:border-indigo-500/30">
                                                 {student.name[0]}
                                             </div>
                                             <div>
@@ -169,19 +208,32 @@ const StudentHistory = () => {
                                         <h2 className="text-xl font-bold dark:text-white">{selectedStudent.name}</h2>
                                         <p className="text-gray-500 dark:text-gray-400">{selectedStudent.department} - {selectedStudent.year} Year {selectedStudent.section && `(Sec ${selectedStudent.section})`}</p>
                                         <p className="text-xs text-indigo-500 font-mono mt-1">{selectedStudent.email}</p>
+                                        {isTeacherOrAdmin && (
+                                            <button
+                                                onClick={handleOpenStatsModal}
+                                                className="mt-2 flex items-center gap-1 text-xs bg-indigo-100 text-indigo-700 px-2 py-1 rounded hover:bg-indigo-200 transition"
+                                            >
+                                                <Edit2 className="h-3 w-3" /> Edit Stats
+                                            </button>
+                                        )}
                                     </div>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">CPI</p>
+                                        <p className="text-xl font-bold dark:text-white">
+                                            {selectedStudent.academicStats?.cpi || 0}
+                                        </p>
+                                        <p className="text-xs text-gray-400">
+                                            {selectedStudent.academicStats?.totalCredits || 0} Credits
+                                        </p>
+                                    </div>
+                                    <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
                                         <p className="text-sm text-gray-500 dark:text-gray-400">Attendance</p>
                                         <p className={`text-xl font-bold ${selectedStudent.attendance < 75 ? 'text-red-500' : 'text-emerald-500'}`}>
                                             {selectedStudent.attendance || 0}%
                                         </p>
-                                    </div>
-                                    <div className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
-                                        <p className="text-sm text-gray-500 dark:text-gray-400">Status</p>
-                                        <p className="text-xl font-bold dark:text-white">Active</p>
                                     </div>
                                 </div>
                             </div>
@@ -369,6 +421,45 @@ const StudentHistory = () => {
                             </div>
                             <button type="submit" disabled={formLoading} className="w-full bg-red-600 text-white py-3 rounded-xl font-bold hover:bg-red-700 transition">
                                 {formLoading ? 'Adding...' : 'Add UFM Record'}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Academic Stats Modal */}
+            {showStatsModal && (
+                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white dark:bg-gray-800 w-full max-w-md rounded-2xl p-6 shadow-xl animate-scale-in">
+                        <div className="flex justify-between items-center mb-6">
+                            <h3 className="text-xl font-bold dark:text-white">Edit Academic Stats</h3>
+                            <button onClick={() => setShowStatsModal(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
+                                <X className="h-6 w-6" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleUpdateStats} className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">CPI (Cumulative)</label>
+                                <input
+                                    type="number"
+                                    step="0.01"
+                                    className="w-full p-2.5 rounded-xl border dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    value={statsData.cpi}
+                                    onChange={(e) => setStatsData({ ...statsData, cpi: e.target.value })}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Total Credits Earned</label>
+                                <input
+                                    type="number"
+                                    step="0.5"
+                                    className="w-full p-2.5 rounded-xl border dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                    value={statsData.totalCredits}
+                                    onChange={(e) => setStatsData({ ...statsData, totalCredits: e.target.value })}
+                                />
+                            </div>
+                            <button type="submit" disabled={formLoading} className="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold hover:bg-indigo-700 transition">
+                                {formLoading ? 'Updating...' : 'Update Stats'}
                             </button>
                         </form>
                     </div>

@@ -47,6 +47,11 @@ const userSchema = new mongoose.Schema({
         reason: String,
         actionTaken: String
     }],
+
+    academicStats: {
+        cpi: { type: Number, default: 0 },
+        totalCredits: { type: Number, default: 0 }
+    }
 }, { timestamps: true });
 
 // Password Hash Middleware

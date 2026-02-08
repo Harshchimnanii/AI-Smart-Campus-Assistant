@@ -86,12 +86,12 @@ const Sidebar = ({ isOpen, onClose }) => {
                 />
             )}
 
-            <div className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col z-50 shadow-xl md:shadow-sm transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+            <div className={`fixed inset-y-0 left-0 w-64 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-xl border-r border-gray-200 dark:border-white/10 flex flex-col z-50 shadow-xl md:shadow-none transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
                 }`}>
                 <div className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <img src={logo} alt="Campus AI Logo" className="h-10 w-10 object-contain hover:scale-110 transition-transform duration-300 drop-shadow-lg" />
-                        <span className="font-bold text-xl text-gray-800 dark:text-white tracking-tight">Campus<span className="text-indigo-600">AI</span></span>
+                        <img src={logo} alt="NexCampus Logo" className="h-10 w-10 object-contain hover:scale-110 transition-transform duration-300 drop-shadow-lg" />
+                        <span className="font-bold text-xl text-gray-800 dark:text-white tracking-tight">Nex<span className="text-indigo-600">Campus</span></span>
                     </div>
                     {/* Close Button for Mobile */}
                     <button onClick={onClose} className="md:hidden text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
@@ -99,8 +99,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                     </button>
                 </div>
 
-                <div className="p-4 border-b border-gray-50 dark:border-gray-800 mb-2">
-                    <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
+                <div className="p-4 border-b border-gray-100 dark:border-white/10 mb-2">
+                    <div className="flex items-center gap-3 bg-gray-50/50 dark:bg-white/5 p-3 rounded-xl border border-gray-200 dark:border-white/10">
                         <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-bold">
                             {user?.name?.[0] || 'U'}
                         </div>
@@ -121,8 +121,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                                 to={link.path}
                                 onClick={() => onClose()} // Close sidebar on link click (mobile)
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${isActive
-                                    ? 'bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-800'
-                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
+                                    ? 'bg-indigo-50 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-300 shadow-sm border border-indigo-100 dark:border-indigo-500/30'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
                                     }`}
                             >
                                 <Icon className={`h-5 w-5 ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500 group-hover:text-gray-600 dark:group-hover:text-gray-300'}`} />
@@ -132,7 +132,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-gray-50 dark:border-gray-800 space-y-2 pb-24 md:pb-4">
+                <div className="p-4 border-t border-gray-100 dark:border-white/10 space-y-2 pb-24 md:pb-4">
                     {/* Install App Button (Only visible if installable) */}
                     {deferredPrompt && (
                         <button
