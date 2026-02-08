@@ -27,6 +27,7 @@ import Profile from './pages/dashboard/Profile';
 import TakeAttendance from './pages/dashboard/TakeAttendance';
 import UploadMarks from './pages/dashboard/UploadMarks';
 import ClassMapping from './pages/dashboard/ClassMapping';
+import ManageSchedule from './pages/dashboard/ManageSchedule';
 import StudentHistory from './pages/dashboard/StudentHistory';
 import UserManagement from './pages/dashboard/UserManagement';
 import AdminNotices from './pages/dashboard/AdminNotices';
@@ -69,6 +70,7 @@ function App() {
               <Route element={<ProtectedRoute allowedRoles={['teacher', 'admin', 'ceo', 'faculty']} />}>
                 <Route path="/dashboard/attendance/take" element={<TakeAttendance />} />
                 <Route path="/dashboard/classes" element={<ClassMapping />} />
+                <Route path="/dashboard/schedule" element={<ManageSchedule />} />
                 <Route path="/dashboard/marks/upload" element={<UploadMarks />} />
                 <Route path="/dashboard/student-history" element={<StudentHistory />} />
                 <Route path="/dashboard/admin/notices" element={<AdminNotices />} />

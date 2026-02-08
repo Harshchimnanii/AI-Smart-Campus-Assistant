@@ -2,15 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Custom Global Styles */
+/* Gen Z / Cyberpunk Global Styles */
 body {
     background-color: #f3f4f6;
     color: #1f2937;
+    overflow-x: hidden;
+    /* Prevent horizontal scroll on mobile */
 }
 
 .dark body {
-    background-color: #111827;
-    /* gray-900 */
+    background-color: #0a0a0a;
+    /* Darker than gray-900 for that OLED pop */
     color: #f9fafb;
-    /* gray-50 */
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #4f46e5;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #4338ca;
+}
+
+/* Selection Color (Neon Lime) */
+::selection {
+    background-color: #a3e635;
+    /* lime-400 */
+    color: black;
+}
+
+/* Animation Utilities */
+@keyframes bounce-slow {
+
+    0%,
+    100% {
+        transform: translateY(-5%);
+    }
+
+    50% {
+        transform: translateY(5%);
+    }
+}
+
+.animate-bounce-slow {
+    animation: bounce-slow 3s infinite ease-in-out;
 }

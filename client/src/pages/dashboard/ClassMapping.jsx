@@ -69,9 +69,9 @@ const ClassMapping = () => {
         <div className="space-y-6 animate-fade-in p-2 md:p-6">
             <h1 className="text-3xl font-bold dark:text-white flex items-center gap-3">
                 <BookOpen className="h-8 w-8 text-indigo-600" />
-                Manage Subjects
+                My Subjects
             </h1>
-            <p className="text-gray-500 dark:text-gray-400">Map the subjects you teach to specific classes.</p>
+            <p className="text-gray-500 dark:text-gray-400">Add the subjects you teach here. Then go to <b>Class Schedule</b> to set time and room.</p>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Add New Class Form */}

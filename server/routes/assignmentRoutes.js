@@ -37,7 +37,7 @@ router.get('/', protect, async (req, res) => {
 // @desc    Create an assignment
 // @access  Private (Teacher, Admin, CEO)
 router.post('/', protect, teacher, upload.single('file'), async (req, res) => {
-    const { title, subject, description, dueDate } = req.body;
+    const { title, subject, description, dueDate, department, year } = req.body;
     const questionPaper = req.file ? `/uploads/${req.file.filename}` : null;
 
     try {
@@ -46,6 +46,8 @@ router.post('/', protect, teacher, upload.single('file'), async (req, res) => {
             subject,
             description,
             dueDate,
+            department,
+            year,
             questionPaper,
             createdBy: req.user._id,
         });

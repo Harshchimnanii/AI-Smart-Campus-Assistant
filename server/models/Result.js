@@ -19,12 +19,19 @@ const resultSchema = new mongoose.Schema({
         required: true
     },
     marks: {
-        type: Number,
+        type: Number, // Total Marks (Sum of components)
         required: true
     },
     totalMarks: {
         type: Number,
         required: true
+    },
+    components: {
+        midSem: { type: Number, default: 0 },
+        endSem: { type: Number, default: 0 },
+        practical: { type: Number, default: 0 },
+        assignment: { type: Number, default: 0 },
+        attendance: { type: Number, default: 0 }
     },
     grade: {
         type: String, // e.g., "A", "B+"

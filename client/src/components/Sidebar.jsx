@@ -1,4 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import { LayoutDashboard, GraduationCap, FileText, Calendar, MessageSquare, Briefcase, LogOut, Users, CheckSquare, Sun, Moon, Bell, AlertCircle, Utensils, X, Trophy, Calculator, Layers } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -27,7 +28,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                 { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
                 { name: 'Take Attendance', path: '/dashboard/attendance/take', icon: CheckSquare },
                 { name: 'Upload Marks', path: '/dashboard/marks/upload', icon: Calculator },
-                { name: 'Manage Subjects', path: '/dashboard/classes', icon: Briefcase },
+                { name: 'My Subjects', path: '/dashboard/classes', icon: Briefcase },
+                { name: 'Class Schedule', path: '/dashboard/schedule', icon: Calendar },
                 { name: 'Assignments', path: '/dashboard/assignments', icon: FileText },
                 { name: 'Student History', path: '/dashboard/student-history', icon: Users },
                 { name: 'Manage Notices', path: '/dashboard/admin/notices', icon: Bell },
@@ -47,6 +49,31 @@ const Sidebar = ({ isOpen, onClose }) => {
 
     const links = getLinks(user?.role);
 
+    // PWA Install Logic
+    const [deferredPrompt, setDeferredPrompt] = useState(null);
+
+    useEffect(() => {
+        const handleBeforeInstallPrompt = (e) => {
+            e.preventDefault();
+            setDeferredPrompt(e);
+        };
+
+        window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+
+        return () => {
+            window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+        };
+    }, []);
+
+    const handleInstallClick = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            setDeferredPrompt(null);
+        }
+    };
+
     return (
         <>
             {/* Mobile Overlay */}
@@ -61,7 +88,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 }`}>
                 <div className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold">
+                        <div className="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold animate-pulse">
                             AI
                         </div>
                         <span className="font-bold text-xl text-gray-800 dark:text-white tracking-tight">Campus<span className="text-indigo-600">AI</span></span>
@@ -73,7 +100,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className="p-4 border-b border-gray-50 dark:border-gray-800 mb-2">
-                    <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-xl">
+                    <div className="flex items-center gap-3 bg-gray-50 dark:bg-gray-800 p-3 rounded-xl border border-gray-100 dark:border-gray-700">
                         <div className="h-10 w-10 bg-indigo-100 dark:bg-indigo-900 rounded-full flex items-center justify-center text-indigo-600 dark:text-indigo-300 font-bold">
                             {user?.name?.[0] || 'U'}
                         </div>
@@ -84,7 +111,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                     </div>
                 </div>
 
-                <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+                <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto custom-scrollbar">
                     {links.map((link) => {
                         const Icon = link.icon;
                         const isActive = pathname === link.path;
@@ -94,7 +121,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                                 to={link.path}
                                 onClick={() => onClose()} // Close sidebar on link click (mobile)
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all group ${isActive
-                                    ? 'bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 shadow-sm'
+                                    ? 'bg-indigo-50 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 shadow-sm border border-indigo-100 dark:border-indigo-800'
                                     : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-white'
                                     }`}
                             >
@@ -106,6 +133,17 @@ const Sidebar = ({ isOpen, onClose }) => {
                 </nav>
 
                 <div className="p-4 border-t border-gray-50 dark:border-gray-800 space-y-2 pb-24 md:pb-4">
+                    {/* Install App Button (Only visible if installable) */}
+                    {deferredPrompt && (
+                        <button
+                            onClick={handleInstallClick}
+                            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 hover:shadow-lg transition-all animate-bounce-slow"
+                        >
+                            <Briefcase className="h-5 w-5" />
+                            Install App 📲
+                        </button>
+                    )}
+
                     <button
                         onClick={toggleTheme}
                         className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"

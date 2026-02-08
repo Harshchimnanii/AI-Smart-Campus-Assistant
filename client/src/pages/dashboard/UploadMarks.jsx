@@ -11,11 +11,13 @@ const UploadMarks = () => {
     // Filter State
     const [subject, setSubject] = useState('');
     const [semester, setSemester] = useState('3rd'); // Default
-    const [examType, setExamType] = useState('Mid-Sem');
-    const [totalMarks, setTotalMarks] = useState(100);
+
+    // We assume this is a comprehensive upload now
+    // const [examType, setExamType] = useState('Comprehensive'); 
 
     const [subjects, setSubjects] = useState([]);
-    const [marksData, setMarksData] = useState({}); // { studentId: marks }
+    const [marksData, setMarksData] = useState({});
+    // Structure: { studentId: { practical: 0, assignment: 0, midSem: 0, endSem: 0, attendance: 0 } }
 
     useEffect(() => {
         const fetchSubjects = async () => {
@@ -34,42 +36,83 @@ const UploadMarks = () => {
         setLoading(true);
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
-            // In a real app, we'd filter by the specific class selected (Dept/Year)
-            // For now, fetching all students
-            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/auth/users`, config);
-            const studentList = data.filter(u => u.role === 'student');
-            setStudents(studentList);
 
-            // Initialize marks (or fetch existing if we wanted to support editing)
+            // Find department/year from the selected subject object in our list
+            const selectedSubObj = subjects.find(s => s.subject === subject);
+            let queryParams = `?subject=${encodeURIComponent(subject)}`;
+            if (selectedSubObj) {
+                queryParams += `&department=${selectedSubObj.department}&year=${selectedSubObj.year}`;
+            }
+
+            const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/results/students-for-marks${queryParams}`, config);
+            setStudents(data);
+
+            // Initialize marks with auto-suggested attendance
             const initialMarks = {};
-            studentList.forEach(s => initialMarks[s._id] = '');
+            data.forEach(s => {
+                initialMarks[s._id] = {
+                    practical: '',
+                    assignment: '',
+                    midSem: '',
+                    endSem: '',
+                    attendance: s.attendanceStats?.suggestedMarks || 0
+                };
+            });
             setMarksData(initialMarks);
         } catch (error) {
             console.error(error);
+            alert("Error fetching students");
         } finally {
             setLoading(false);
         }
     };
 
-    const handleMarkChange = (studentId, value) => {
-        setMarksData(prev => ({ ...prev, [studentId]: value }));
+    const handleMarkChange = (studentId, field, value) => {
+        setMarksData(prev => ({
+            ...prev,
+            [studentId]: {
+                ...prev[studentId],
+                [field]: value
+            }
+        }));
+    };
+
+    const calculateTotal = (studentId) => {
+        const m = marksData[studentId];
+        if (!m) return 0;
+        return (Number(m.practical) || 0) +
+            (Number(m.assignment) || 0) +
+            (Number(m.midSem) || 0) +
+            (Number(m.endSem) || 0) +
+            (Number(m.attendance) || 0);
     };
 
     const handleSave = async () => {
         if (!subject) return alert("Please select a subject");
 
         const promises = Object.keys(marksData).map(async (studentId) => {
-            const marks = marksData[studentId];
-            if (marks === '' || isNaN(marks)) return; // Skip invalid
+            const marksObj = marksData[studentId];
+
+            // Only submit if at least one field is filled (or attendance is auto-filled)
+            // Actually, we should probably check if the user intended to grade this student.
+            // Let's assume if Total > 0 or they touched it.
+
+            const total = calculateTotal(studentId);
 
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             return axios.post(`${import.meta.env.VITE_API_URL}/api/results/add`, {
                 studentId,
                 subject,
                 semester,
-                examType,
-                marks: Number(marks),
-                totalMarks: Number(totalMarks)
+                examType: 'Comprehensive', // Storing as one big result
+                components: {
+                    practical: Number(marksObj.practical) || 0,
+                    assignment: Number(marksObj.assignment) || 0,
+                    midSem: Number(marksObj.midSem) || 0,
+                    endSem: Number(marksObj.endSem) || 0,
+                    attendance: Number(marksObj.attendance) || 0
+                },
+                totalMarks: 100
             }, config);
         });
 
@@ -90,7 +133,7 @@ const UploadMarks = () => {
             </h1>
 
             <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
                         <select
@@ -99,7 +142,7 @@ const UploadMarks = () => {
                             className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                         >
                             <option value="">Select Subject</option>
-                            {subjects.map(s => <option key={s._id} value={s.subject}>{s.subject} ({s.department})</option>)}
+                            {subjects.map(s => <option key={s._id} value={s.subject}>{s.subject} ({s.department}-{s.year})</option>)}
                         </select>
                     </div>
                     <div>
@@ -119,26 +162,14 @@ const UploadMarks = () => {
                             <option value="8th">8th Sem</option>
                         </select>
                     </div>
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Exam Type</label>
-                        <select
-                            value={examType}
-                            onChange={(e) => setExamType(e.target.value)}
-                            className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                        >
-                            <option value="Mid-Sem">Mid-Sem</option>
-                            <option value="End-Sem">End-Sem</option>
-                            <option value="Assignment">Assignment</option>
-                            <option value="Practical">Practical</option>
-                        </select>
-                    </div>
+
                     <div className="flex items-end">
                         <button
                             onClick={fetchStudents}
                             disabled={!subject}
                             className="w-full bg-indigo-600 text-white py-2.5 rounded-xl hover:bg-indigo-700 transition disabled:bg-gray-400"
                         >
-                            Fetch Students
+                            {loading ? 'Fetching...' : 'Fetch Students'}
                         </button>
                     </div>
                 </div>
@@ -148,25 +179,37 @@ const UploadMarks = () => {
                         <table className="w-full text-sm text-left">
                             <thead className="text-xs text-gray-700 dark:text-gray-300 uppercase bg-gray-50 dark:bg-gray-700">
                                 <tr>
-                                    <th className="px-4 py-3">Student Name</th>
-                                    <th className="px-4 py-3">Roll No</th>
-                                    <th className="px-4 py-3">Marks (Out of {totalMarks})</th>
+                                    <th className="px-4 py-3">Student</th>
+                                    <th className="px-2 py-3 text-center">Practical (10)</th>
+                                    <th className="px-2 py-3 text-center">Assign (5)</th>
+                                    <th className="px-2 py-3 text-center">Mid-Sem (30)</th>
+                                    <th className="px-2 py-3 text-center">End-Sem (50)</th>
+                                    <th className="px-2 py-3 text-center">Attend (5)</th>
+                                    <th className="px-4 py-3 text-center">Total (100)</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                                 {students.map(student => (
                                     <tr key={student._id}>
-                                        <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{student.name}</td>
-                                        <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{student.rollNumber || 'N/A'}</td>
                                         <td className="px-4 py-3">
-                                            <input
-                                                type="number"
-                                                value={marksData[student._id] || ''}
-                                                onChange={(e) => handleMarkChange(student._id, e.target.value)}
-                                                className="w-24 p-1.5 rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                                                max={totalMarks}
-                                                min="0"
-                                            />
+                                            <p className="font-medium text-gray-900 dark:text-white">{student.name}</p>
+                                            <p className="text-xs text-gray-500">{student.rollNumber || 'N/A'}</p>
+                                        </td>
+
+                                        {['practical', 'assignment', 'midSem', 'endSem', 'attendance'].map(field => (
+                                            <td key={field} className="px-2 py-3 text-center">
+                                                <input
+                                                    type="number"
+                                                    value={marksData[student._id]?.[field] ?? ''}
+                                                    onChange={(e) => handleMarkChange(student._id, field, e.target.value)}
+                                                    className="w-16 p-1.5 text-center rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                                                    placeholder="0"
+                                                />
+                                            </td>
+                                        ))}
+
+                                        <td className="px-4 py-3 text-center font-bold text-indigo-600 dark:text-indigo-400">
+                                            {calculateTotal(student._id)}
                                         </td>
                                     </tr>
                                 ))}
@@ -179,7 +222,7 @@ const UploadMarks = () => {
                                 className="flex items-center gap-2 bg-green-600 text-white px-6 py-3 rounded-xl hover:bg-green-700 transition shadow-lg shadow-green-200 dark:shadow-none"
                             >
                                 <Save className="w-5 h-5" />
-                                Save Results
+                                Save All Results
                             </button>
                         </div>
                     </div>

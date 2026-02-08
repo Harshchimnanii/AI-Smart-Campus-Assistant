@@ -3,11 +3,11 @@ import axios from 'axios';
 import { Calendar, Clock, MapPin, BookOpen } from 'lucide-react';
 
 const Academics = () => {
-    const [timetable, setTimetable] = useState([]);
+    const [timetable, setTimetable] = useState({ weekly: [], specific: [] });
     const [loading, setLoading] = useState(true);
     const [selectedDay, setSelectedDay] = useState(new Date().toLocaleDateString('en-US', { weekday: 'long' }));
 
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
     useEffect(() => {
         fetchTimetable();
@@ -18,7 +18,7 @@ const Academics = () => {
             const token = JSON.parse(localStorage.getItem('userInfo')).token;
             const config = { headers: { Authorization: `Bearer ${token}` } };
             const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/timetable`, config);
-            setTimetable(data);
+            setTimetable(data); // Expecting { weekly: [], specific: [] }
             setLoading(false);
         } catch (error) {
             console.error(error);
@@ -26,7 +26,32 @@ const Academics = () => {
         }
     };
 
-    const todaysClasses = timetable.filter(t => t.day === selectedDay);
+    // Filter Weekly classes for selected day
+    const weeklyClasses = timetable.weekly ? timetable.weekly.filter(t => t.day === selectedDay) : [];
+
+    // Filter Specific classes (Only show if they are for 'Today' and today matches selectedDay, or maybe just list them separately?)
+    // For this view (Weekly Schedule), displaying specific dates is tricky unless we toggle to "Calendar View".
+    // Let's just show Weekly classes here for the "Standard Schedule" view.
+    // BUT, if the user has specific classes upcoming, maybe warn them?
+    // Let's stick to Weekly for the tabs, as that's the "Timetable".
+    // Specific classes are better suited for a "Dashboard" view or a specific "Calendar" view.
+
+    // However, if there are specific classes for TODAY, they should appear if today is selected.
+    const today = new Date();
+    const todayName = today.toLocaleDateString('en-US', { weekday: 'long' });
+
+    let displayClasses = [...weeklyClasses];
+
+    if (selectedDay === todayName) {
+        const specificForToday = timetable.specific ? timetable.specific.filter(t => {
+            const d = new Date(t.date);
+            return d.getDate() === today.getDate() && d.getMonth() === today.getMonth();
+        }) : [];
+        displayClasses = [...displayClasses, ...specificForToday];
+    }
+
+    // Sort by time
+    displayClasses.sort((a, b) => a.startTime.localeCompare(b.startTime));
 
     if (loading) return <div className="p-8 dark:text-white">Loading schedule...</div>;
 
@@ -63,7 +88,7 @@ const Academics = () => {
                 </div>
 
                 <div className="divide-y divide-gray-100 dark:divide-gray-700">
-                    {todaysClasses.length > 0 ? todaysClasses.map((cls, index) => (
+                    {displayClasses.length > 0 ? displayClasses.map((cls, index) => (
                         <div key={index} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                             <div className="flex items-start gap-4">
                                 <div className="h-12 w-12 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold text-lg shrink-0">

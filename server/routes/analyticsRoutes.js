@@ -21,12 +21,18 @@ router.get('/student/stats', protect, async (req, res) => {
         // This is a bit complex depending on schema. 
         // Current Schema: Attendance -> records: [{ student: ID, status: 'Present'/'Absent' }]
 
-        const attendanceRecords = await Attendance.find({ 'records.student': studentId });
+        // Ensure studentId is an ObjectId
+        const mongoose = require('mongoose');
+        const studentObjectId = new mongoose.Types.ObjectId(studentId);
+
+        const attendanceRecords = await Attendance.find({ 'records.student': studentObjectId });
+        console.log(`[Stats] Student ${studentId} has ${attendanceRecords.length} attendance docs.`);
 
         let totalClasses = 0;
         let presentClasses = 0;
 
         attendanceRecords.forEach(record => {
+            // Compare as strings to be safe
             const studentRecord = record.records.find(r => r.student.toString() === studentId.toString());
             if (studentRecord) {
                 totalClasses++;
@@ -35,6 +41,8 @@ router.get('/student/stats', protect, async (req, res) => {
                 }
             }
         });
+
+        console.log(`[Stats] Student ${studentId}: Total ${totalClasses}, Present ${presentClasses}`);
 
         const attendancePercentage = totalClasses === 0 ? 0 : Math.round((presentClasses / totalClasses) * 100);
 
@@ -49,13 +57,17 @@ router.get('/student/stats', protect, async (req, res) => {
         });
 
         const performancePercentage = totalMarks === 0 ? 0 : Math.round((obtainedMarks / totalMarks) * 100);
-        // Approximation: CGPA = Percentage / 9.5 (Standard conversion)
-        const cgpa = (performancePercentage / 9.5).toFixed(2);
+        // Approximation: Divide percentage by 10 for a 10-point scale
+        const cgpa = (performancePercentage / 10).toFixed(2);
 
         // 3. Pending Tasks
-        const assignments = await Assignment.find({}); // Ideally filtered by student's class
-        const submissions = await Submission.find({ student: studentId });
+        // Fetch assignments for this student's department and year
+        const assignments = await Assignment.find({
+            department: req.user.department,
+            year: req.user.year
+        });
 
+        const submissions = await Submission.find({ student: studentId });
         const submittedAssignmentIds = submissions.map(s => s.assignment.toString());
 
         // Filter assignments pending for this student (and due date in future)
@@ -87,19 +99,35 @@ router.get('/teacher/stats', protect, teacher, async (req, res) => {
         const teacherId = req.user._id;
 
         // 1. Classes Today
-        // For now, based on Timetable or simpler assumption since we don't have a rigid day-based Timetable query simple yet.
-        // Let's return 0 or mock logic based on ClassMap count? 
-        // Better: Count how many ClassMaps they have (Total Classes they teach)
-        const classMaps = await ClassMap.find({ faculty: teacherId });
-        const totalClasses = classMaps.length;
+        const today = new Date();
+        const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const dayName = days[today.getDay()];
+
+        // Count Weekly classes for today
+        const weeklyClassesCount = await require('../models/Timetable').countDocuments({
+            facultyId: teacherId,
+            type: 'weekly',
+            day: dayName
+        });
+
+        // Count Specific classes for today
+        const startOfDay = new Date(today.setHours(0, 0, 0, 0));
+        const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+
+        const specificClassesCount = await require('../models/Timetable').countDocuments({
+            facultyId: teacherId,
+            type: 'specific',
+            date: { $gte: startOfDay, $lte: endOfDay }
+        });
+
+        const totalClassesToday = weeklyClassesCount + specificClassesCount;
 
         // 2. Total Students
         // Get all unique students in these classes. 
-        // Logic: Find users where department & year match one of the ClassMaps
-        // This might be heavy, so let's approximate or do strict query.
         let studentCount = 0;
 
         // Efficient way: Get all Department-Year pairs
+        const classMaps = await ClassMap.find({ faculty: teacherId });
         const classes = classMaps.map(c => ({ department: c.department, year: c.year, section: c.section }));
 
         if (classes.length > 0) {
@@ -120,7 +148,7 @@ router.get('/teacher/stats', protect, teacher, async (req, res) => {
         const submissionsCount = await Submission.countDocuments({ assignment: { $in: assignmentIds } });
 
         res.json({
-            classesToday: totalClasses, // Returning total subjects mapped instead of "Today" for now
+            classesToday: totalClassesToday,
             totalStudents: studentCount,
             pendingGrading: submissionsCount // Using total submissions as a proxy for activity
         });

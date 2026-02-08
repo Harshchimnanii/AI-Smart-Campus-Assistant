@@ -37,6 +37,9 @@ router.post('/add', protect, teacher, async (req, res) => {
 
         res.status(201).json(newMap);
     } catch (error) {
+        if (error.code === 11000) {
+            return res.status(400).json({ message: 'Class mapping already exists' });
+        }
         res.status(500).json({ message: 'Server Error', error: error.message });
     }
 });
