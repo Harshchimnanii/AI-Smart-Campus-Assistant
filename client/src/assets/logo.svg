@@ -1,0 +1,26 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0ea5e9;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2dd4bf;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <path d="M100 20 L170 60 V140 L100 180 L30 140 V60 Z" fill="none" stroke="url(#grad1)" stroke-width="8" />
+  <path d="M100 35 L155 67 V133 L100 165 L45 133 V67 Z" fill="none" stroke="#e2e8f0" stroke-width="4" opacity="0.5" />
+  
+  <!-- Building stylized inside -->
+  <rect x="75" y="70" width="50" height="80" rx="4" fill="url(#grad1)" />
+  <rect x="85" y="80" width="10" height="10" fill="#ffffff" opacity="0.8" />
+  <rect x="105" y="80" width="10" height="10" fill="#ffffff" opacity="0.8" />
+  <rect x="85" y="100" width="10" height="10" fill="#ffffff" opacity="0.8" />
+  <rect x="105" y="100" width="10" height="10" fill="#ffffff" opacity="0.8" />
+  <rect x="85" y="120" width="10" height="10" fill="#ffffff" opacity="0.8" />
+  <rect x="105" y="120" width="10" height="10" fill="#ffffff" opacity="0.8" />
+  
+  <!-- Circuit lines -->
+  <circle cx="170" cy="60" r="5" fill="#2dd4bf" />
+  <circle cx="30" cy="140" r="5" fill="#0ea5e9" />
+  <path d="M170 60 L185 60" stroke="#2dd4bf" stroke-width="4" />
+  <path d="M30 140 L15 140" stroke="#0ea5e9" stroke-width="4" />
+</svg>

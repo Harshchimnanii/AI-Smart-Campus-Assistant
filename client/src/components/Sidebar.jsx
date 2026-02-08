@@ -4,6 +4,8 @@ import { LayoutDashboard, GraduationCap, FileText, Calendar, MessageSquare, Brie
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
+import logo from '../assets/logo.svg';
+
 const Sidebar = ({ isOpen, onClose }) => {
     const { pathname } = useLocation();
     const { logout, user } = useAuth();
@@ -88,9 +90,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 }`}>
                 <div className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold animate-pulse">
-                            AI
-                        </div>
+                        <img src={logo} alt="Campus AI Logo" className="h-10 w-10 object-contain hover:scale-110 transition-transform duration-300 drop-shadow-lg" />
                         <span className="font-bold text-xl text-gray-800 dark:text-white tracking-tight">Campus<span className="text-indigo-600">AI</span></span>
                     </div>
                     {/* Close Button for Mobile */}
