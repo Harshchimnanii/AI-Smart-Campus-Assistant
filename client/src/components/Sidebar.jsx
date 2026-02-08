@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { LayoutDashboard, GraduationCap, FileText, Calendar, MessageSquare, Briefcase, LogOut, Users, CheckSquare, Sun, Moon, Bell, AlertCircle, Utensils, X } from 'lucide-react';
+import { LayoutDashboard, GraduationCap, FileText, Calendar, MessageSquare, Briefcase, LogOut, Users, CheckSquare, Sun, Moon, Bell, AlertCircle, Utensils, X, Trophy, Calculator, Layers } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
@@ -14,6 +14,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             return [
                 { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
                 { name: 'Academics', path: '/dashboard/academics', icon: GraduationCap },
+                { name: 'My Results', path: '/dashboard/results', icon: Trophy },
                 { name: 'Attendance', path: '/dashboard/attendance', icon: Calendar },
                 { name: 'Assignments', path: '/dashboard/assignments', icon: FileText },
                 { name: 'Notices', path: '/dashboard/notices', icon: Bell },
@@ -25,6 +26,8 @@ const Sidebar = ({ isOpen, onClose }) => {
             return [
                 { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
                 { name: 'Take Attendance', path: '/dashboard/attendance/take', icon: CheckSquare },
+                { name: 'Upload Marks', path: '/dashboard/marks/upload', icon: Calculator },
+                { name: 'Manage Subjects', path: '/dashboard/classes', icon: Briefcase },
                 { name: 'Assignments', path: '/dashboard/assignments', icon: FileText },
                 { name: 'Student History', path: '/dashboard/student-history', icon: Users },
                 { name: 'Manage Notices', path: '/dashboard/admin/notices', icon: Bell },
@@ -34,6 +37,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             return [
                 { name: 'Overview', path: '/dashboard', icon: LayoutDashboard },
                 { name: 'User Management', path: '/dashboard/users', icon: Users },
+                { name: 'Section Management', path: '/dashboard/admin/sections', icon: Layers },
                 { name: 'Manage Notices', path: '/dashboard/admin/notices', icon: Bell },
                 { name: 'Help Desk', path: '/dashboard/admin/complaints', icon: AlertCircle },
             ];
@@ -53,7 +57,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 />
             )}
 
-            <div className={`h-screen w-64 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col fixed left-0 top-0 z-40 shadow-xl md:shadow-sm transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
+            <div className={`fixed inset-y-0 left-0 w-64 bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 flex flex-col z-50 shadow-xl md:shadow-sm transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
                 }`}>
                 <div className="p-6 flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -101,7 +105,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                     })}
                 </nav>
 
-                <div className="p-4 border-t border-gray-50 dark:border-gray-800 space-y-2">
+                <div className="p-4 border-t border-gray-50 dark:border-gray-800 space-y-2 pb-24 md:pb-4">
                     <button
                         onClick={toggleTheme}
                         className="flex items-center gap-3 px-3 py-2.5 w-full rounded-xl text-sm font-medium text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"

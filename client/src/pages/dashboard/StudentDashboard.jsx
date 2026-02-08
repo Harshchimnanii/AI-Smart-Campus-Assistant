@@ -36,21 +36,12 @@ const StudentDashboard = () => {
                 const token = JSON.parse(localStorage.getItem('userInfo')).token;
                 const config = { headers: { Authorization: `Bearer ${token}` } };
 
-                const [noticesRes, assignmentsRes] = await Promise.all([
+                const [noticesRes, statsRes] = await Promise.all([
                     axios.get(`${import.meta.env.VITE_API_URL}/api/notices`, config),
-                    axios.get(`${import.meta.env.VITE_API_URL}/api/assignments`, config)
+                    axios.get(`${import.meta.env.VITE_API_URL}/api/analytics/student/stats`, config)
                 ]);
 
-                // Calculate Stats
-                const pending = assignmentsRes.data.filter(a => new Date(a.dueDate) > new Date()).length;
-
-                setStats({
-                    attendance: '85%', // Mock for now until attendance calc is robust
-                    cgpa: '8.4',      // Mock
-                    pendingTasks: pending,
-                    completedTasks: assignmentsRes.data.length - pending
-                });
-
+                setStats(statsRes.data);
                 setNotices(noticesRes.data.slice(0, 3));
                 setLoading(false);
             } catch (error) {

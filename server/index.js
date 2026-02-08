@@ -27,6 +27,9 @@ app.use('/api/complaints/', require('./routes/complaintRoutes'));
 app.use('/api/timetable/', require('./routes/timetableRoutes'));
 app.use('/api/mess/', require('./routes/messRoutes'));
 app.use('/api/users/', require('./routes/userRoutes'));
+app.use('/api/class-map/', require('./routes/classMapRoutes'));
+app.use('/api/results/', require('./routes/resultRoutes'));
+app.use('/api/academics/', require('./routes/academicRoutes'));
 
 app.use('/uploads', express.static('uploads'));
 

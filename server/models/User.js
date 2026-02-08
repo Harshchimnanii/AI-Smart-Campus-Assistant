@@ -26,6 +26,7 @@ const userSchema = new mongoose.Schema({
         unique: true,
         sparse: true, // Allows null/unique for admins
     },
+    section: String, // e.g., "A", "B"
     department: String,
     year: String,
     attendance: {

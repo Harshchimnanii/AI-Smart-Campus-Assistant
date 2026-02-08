@@ -14,19 +14,24 @@ import StudentDashboard from './pages/dashboard/StudentDashboard'; // Fallback i
 import Academics from './pages/dashboard/Academics';
 import Attendance from './pages/dashboard/Attendance';
 import Assignments from './pages/dashboard/Assignments';
+import MyResults from './pages/dashboard/MyResults';
 import ChatAssistant from './pages/dashboard/ChatAssistant';
 
 // Smart Campus Modules
 import Notices from './pages/dashboard/Notices';
 import Complaints from './pages/dashboard/Complaints';
 import MessMenu from './pages/dashboard/MessMenu';
+import Profile from './pages/dashboard/Profile';
 
 // Teacher/Admin Modules
 import TakeAttendance from './pages/dashboard/TakeAttendance';
+import UploadMarks from './pages/dashboard/UploadMarks';
+import ClassMapping from './pages/dashboard/ClassMapping';
 import StudentHistory from './pages/dashboard/StudentHistory';
 import UserManagement from './pages/dashboard/UserManagement';
 import AdminNotices from './pages/dashboard/AdminNotices';
 import AdminComplaints from './pages/dashboard/AdminComplaints';
+import SectionManagement from './pages/dashboard/admin/SectionManagement';
 import AdminLogin from './pages/AdminLogin';
 
 // Placeholder
@@ -53,14 +58,18 @@ function App() {
               <Route path="/dashboard/mess" element={<MessMenu />} />
               <Route path="/dashboard/chat" element={<ChatAssistant />} />
               <Route path="/dashboard/assignments" element={<Assignments />} />
+              <Route path="/dashboard/profile" element={<Profile />} />
 
               {/* Student Specific */}
               <Route path="/dashboard/academics" element={<Academics />} />
+              <Route path="/dashboard/results" element={<MyResults />} />
               <Route path="/dashboard/attendance" element={<Attendance />} />
 
               {/* Teacher Only Routes */}
               <Route element={<ProtectedRoute allowedRoles={['teacher', 'admin', 'ceo', 'faculty']} />}>
                 <Route path="/dashboard/attendance/take" element={<TakeAttendance />} />
+                <Route path="/dashboard/classes" element={<ClassMapping />} />
+                <Route path="/dashboard/marks/upload" element={<UploadMarks />} />
                 <Route path="/dashboard/student-history" element={<StudentHistory />} />
                 <Route path="/dashboard/admin/notices" element={<AdminNotices />} />
                 <Route path="/dashboard/admin/complaints" element={<AdminComplaints />} />
@@ -69,6 +78,7 @@ function App() {
               {/* Admin/CEO Routes */}
               <Route element={<ProtectedRoute allowedRoles={['admin', 'ceo']} />}>
                 <Route path="/dashboard/users" element={<UserManagement />} />
+                <Route path="/dashboard/admin/sections" element={<SectionManagement />} />
               </Route>
 
               <Route path="/dashboard/career" element={<Placeholder title="Career Guide" />} />
