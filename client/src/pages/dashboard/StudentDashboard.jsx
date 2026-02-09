@@ -5,7 +5,7 @@ import { Calendar, TrendingUp, AlertCircle, CheckCircle, Info, Flame, Smile, Meh
 import { Link } from 'react-router-dom';
 
 const StatCard = ({ title, value, subtext, icon: Icon, color }) => (
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex items-start justify-between hover:shadow-md transition-shadow duration-200 group">
+    <div className="bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/20 dark:border-white/10 flex items-start justify-between hover:shadow-lg hover:bg-white/70 dark:hover:bg-[#1a1a1a]/70 transition-all duration-300 group">
         <div>
             <p className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">{title}</p>
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white group-hover:scale-110 transition-transform origin-left">{value}</h3>
@@ -121,16 +121,16 @@ const StudentDashboard = () => {
 
             {/* Gen Z Feature 2: Vibe Check */}
             {!vibe && (
-                <div className="bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 p-[1px] rounded-2xl">
-                    <div className="bg-white dark:bg-gray-900 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="bg-gradient-to-r from-pink-500/50 via-purple-500/50 to-indigo-500/50 p-[1px] rounded-2xl backdrop-blur-3xl">
+                    <div className="bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
                         <div>
                             <h3 className="text-lg font-bold text-gray-900 dark:text-white">Vibe Check 🌊</h3>
                             <p className="text-sm text-gray-500 dark:text-gray-400">How we feeling today?</p>
                         </div>
                         <div className="flex gap-4">
-                            <button onClick={() => handleVibeCheck('slay')} className="text-2xl hover:scale-125 transition-transform p-2 bg-gray-100 dark:bg-gray-800 rounded-full">🤩</button>
-                            <button onClick={() => handleVibeCheck('mid')} className="text-2xl hover:scale-125 transition-transform p-2 bg-gray-100 dark:bg-gray-800 rounded-full">😐</button>
-                            <button onClick={() => handleVibeCheck('cooked')} className="text-2xl hover:scale-125 transition-transform p-2 bg-gray-100 dark:bg-gray-800 rounded-full">💀</button>
+                            <button onClick={() => handleVibeCheck('slay')} className="text-2xl hover:scale-125 transition-transform p-2 bg-white/50 dark:bg-white/10 rounded-full border border-white/20">🤩</button>
+                            <button onClick={() => handleVibeCheck('mid')} className="text-2xl hover:scale-125 transition-transform p-2 bg-white/50 dark:bg-white/10 rounded-full border border-white/20">😐</button>
+                            <button onClick={() => handleVibeCheck('cooked')} className="text-2xl hover:scale-125 transition-transform p-2 bg-white/50 dark:bg-white/10 rounded-full border border-white/20">💀</button>
                         </div>
                     </div>
                 </div>
@@ -142,11 +142,11 @@ const StudentDashboard = () => {
             )}
 
             {/* Next Class Card (Featured) */}
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-1 shadow-lg transform hover:scale-[1.01] transition-transform duration-300">
-                <div className="bg-white dark:bg-gray-900 rounded-xl p-6 flex items-center gap-6 h-full relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl -mr-10 -mt-10"></div>
+            <div className="bg-gradient-to-r from-indigo-600/80 to-purple-600/80 rounded-2xl p-[1px] shadow-lg transform hover:scale-[1.01] transition-transform duration-300 backdrop-blur-xl">
+                <div className="bg-white/90 dark:bg-[#121212]/90 backdrop-blur-xl rounded-xl p-6 flex items-center gap-6 h-full relative overflow-hidden">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-500/20 rounded-full blur-2xl -mr-10 -mt-10"></div>
 
-                    <div className="bg-indigo-100 dark:bg-indigo-900/50 p-4 rounded-2xl">
+                    <div className="bg-indigo-100 dark:bg-indigo-500/20 p-4 rounded-2xl border border-indigo-200 dark:border-indigo-500/30">
                         <Calendar className="h-8 w-8 text-indigo-600 dark:text-indigo-400" />
                     </div>
                     <div className="relative z-10">
@@ -181,16 +181,16 @@ const StudentDashboard = () => {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Recent Activity / Notices */}
                 <div className="lg:col-span-2 space-y-6">
-                    <div className="bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl p-6 shadow-sm">
+                    <div className="bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl border border-white/20 dark:border-white/10 rounded-2xl p-6 shadow-sm">
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                             Latest Tea ☕ <span className="text-xs font-normal text-gray-500">(Notices)</span>
                         </h2>
                         <div className="space-y-4">
                             {notices.length > 0 ? notices.map((notice) => (
-                                <div key={notice._id} className="p-4 rounded-xl bg-gray-50 dark:bg-gray-700/30 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors border border-gray-100 dark:border-gray-600 group">
+                                <div key={notice._id} className="p-4 rounded-xl bg-gray-50/50 dark:bg-white/5 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors border border-gray-100 dark:border-white/10 group">
                                     <div className="flex justify-between items-start mb-2">
                                         <h3 className="font-bold text-gray-800 dark:text-gray-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">{notice.title}</h3>
-                                        <span className="text-xs text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-2 py-1 rounded-md border border-gray-200 dark:border-gray-600">
+                                        <span className="text-xs text-gray-500 dark:text-gray-400 bg-white/50 dark:bg-white/5 px-2 py-1 rounded-md border border-gray-200 dark:border-white/10">
                                             {new Date(notice.createdAt).toLocaleDateString()}
                                         </span>
                                     </div>
@@ -214,13 +214,13 @@ const StudentDashboard = () => {
                         <p className="text-pink-100 text-sm mb-0 opacity-90">Got something to say? Drop an anonymous confession or feedback.</p>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 border border-gray-100 dark:border-gray-700 shadow-sm">
+                    <div className="bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl rounded-2xl p-6 border border-white/20 dark:border-white/10 shadow-sm">
                         <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Quick Links</h2>
                         <div className="space-y-3">
-                            <Link to="/dashboard/academic-results" className="block w-full text-center bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                            <Link to="/dashboard/results" className="block w-full text-center bg-gray-50/50 dark:bg-white/5 text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-colors border border-gray-100 dark:border-white/10">
                                 Check Grades 📊
                             </Link>
-                            <Link to="/dashboard/complaints" className="block w-full text-center bg-gray-50 dark:bg-gray-700 text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+                            <Link to="/dashboard/complaints" className="block w-full text-center bg-gray-50/50 dark:bg-white/5 text-gray-700 dark:text-gray-200 font-semibold py-3 rounded-xl hover:bg-gray-100 dark:hover:bg-white/10 transition-colors border border-gray-100 dark:border-white/10">
                                 Official Complaints ⚖️
                             </Link>
                         </div>

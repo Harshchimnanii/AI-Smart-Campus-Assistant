@@ -33,6 +33,7 @@ import UserManagement from './pages/dashboard/UserManagement';
 import AdminNotices from './pages/dashboard/AdminNotices';
 import AdminComplaints from './pages/dashboard/AdminComplaints';
 import SectionManagement from './pages/dashboard/admin/SectionManagement';
+import IDCardLogs from './pages/dashboard/admin/IDCardLogs';
 import AdminLogin from './pages/AdminLogin';
 
 // Placeholder
@@ -80,7 +81,9 @@ function App() {
               {/* Admin/CEO Routes */}
               <Route element={<ProtectedRoute allowedRoles={['admin', 'ceo']} />}>
                 <Route path="/dashboard/users" element={<UserManagement />} />
+                <Route path="/dashboard/users" element={<UserManagement />} />
                 <Route path="/dashboard/admin/sections" element={<SectionManagement />} />
+                <Route path="/dashboard/admin/id-logs" element={<IDCardLogs />} />
               </Route>
 
               <Route path="/dashboard/career" element={<Placeholder title="Career Guide" />} />

@@ -1,12 +1,35 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { Trophy, TrendingUp, Award, Calculator, X } from 'lucide-react';
+import { Calculator, X, Printer, Menu } from 'lucide-react';
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
+    PieChart, Pie, Cell
+} from 'recharts';
 
 const MyResults = () => {
     const { user } = useAuth();
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showCalculator, setShowCalculator] = useState(false);
+
+    // Previous Academic Data
+    const [stats, setStats] = useState({ cpi: 0, totalCredits: 0 });
+
+    // Sem 6 Presets
+    const [currentSubjects, setCurrentSubjects] = useState([
+        { code: 'BCSC 1012', name: 'DESIGN AND ANALYSIS OF ALGORITHMS', credits: 3, expectedGrade: 'A+' },
+        { code: 'BCSE 0105', name: 'MACHINE LEARNING', credits: 3, expectedGrade: 'A+' },
+        { code: 'BCSE 0252', name: 'FULL STACK USING NODE JS', credits: 3, expectedGrade: 'A+' },
+        { code: 'BCSC 1807', name: 'DESIGN AND ANALYSIS OF ALGORITHMS LAB', credits: 1, expectedGrade: 'A+' },
+        { code: 'BCSE 0133', name: 'MACHINE LEARNING LAB', credits: 1, expectedGrade: 'A+' },
+        { code: 'BCSE 0282', name: 'FULL STACK USING NODE JS LAB', credits: 1, expectedGrade: 'A+' },
+        { code: 'BCSJ 0951', name: 'MINI PROJECT - II', credits: 2, expectedGrade: 'A+' },
+        { code: 'BTDH 0304', name: 'SOFT SKILLS - IV', credits: 4, expectedGrade: 'A+' },
+        { code: 'MBAM 0002', name: 'LEADERSHIP AND ORGANISATIONAL BEHAVIOUR', credits: 0, expectedGrade: 'S' }
+    ]);
+
+    const gradePoints = { 'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5, 'P': 4, 'F': 0, 'S': 0 };
 
     useEffect(() => {
         const fetchResults = async () => {
@@ -20,217 +43,289 @@ const MyResults = () => {
                 setLoading(false);
             }
         };
-        fetchResults();
-    }, [user.token]);
 
-    // Group results by semester
+        if (user.academicStats) {
+            setStats(user.academicStats);
+        }
+        fetchResults();
+    }, [user]);
+
+    // Graph Data Preparation
     const resultsBySem = results.reduce((acc, curr) => {
         (acc[curr.semester] = acc[curr.semester] || []).push(curr);
         return acc;
     }, {});
 
-    // Calculate SPI (Simplistic: Average of Grades converted to points)
-    const getGradePoint = (grade) => {
-        const map = { 'A+': 10, 'A': 9, 'B+': 8, 'B': 7, 'C': 6, 'D': 5, 'F': 0 };
-        return map[grade] || 0;
-    };
+    const graphData = Object.keys(resultsBySem).sort().map(sem => {
+        const semesterResults = resultsBySem[sem];
+        const totalPoints = semesterResults.reduce((sum, r) => sum + (gradePoints[r.grade] || 0), 0);
+        const spi = (totalPoints / semesterResults.length).toFixed(2);
+        // CPI logic is complex without history, using random slight variation for demo or simplistic calc
+        return {
+            name: sem,
+            SPI: parseFloat(spi),
+            CPI: parseFloat((parseFloat(spi) - 0.2).toFixed(2)) // Mocking CPI trend for visual
+        };
+    });
 
-    const calculateSPI = (semResults) => {
-        if (!semResults || semResults.length === 0) return 0;
-        const totalPoints = semResults.reduce((sum, r) => sum + getGradePoint(r.grade), 0);
-        return (totalPoints / semResults.length).toFixed(2);
-    };
+    const overallPercentage = ((stats.cpi / 10) * 100).toFixed(1);
 
-    // --- CPI Calculator Logic ---
-    const [showCalculator, setShowCalculator] = useState(false);
-    const [currentCPI, setCurrentCPI] = useState(0);
-    const [totalCredits, setTotalCredits] = useState(0);
-    const [currentSemSubjects, setCurrentSemSubjects] = useState([{ name: '', credits: 3, expectedGrade: 'A' }]);
+    // Calculator Logic
+    const calculateStats = () => {
+        let currentSemWeightedPoints = 0;
+        let currentSemCredits = 0;
 
-    useEffect(() => {
-        if (user.academicStats) {
-            setCurrentCPI(user.academicStats.cpi || 0);
-            setTotalCredits(user.academicStats.totalCredits || 0);
-        }
-    }, [user]);
-
-    const handleAddSubject = () => {
-        setCurrentSemSubjects([...currentSemSubjects, { name: '', credits: 3, expectedGrade: 'A' }]);
-    };
-
-    const handleRemoveSubject = (index) => {
-        const newSubjects = [...currentSemSubjects];
-        newSubjects.splice(index, 1);
-        setCurrentSemSubjects(newSubjects);
-    };
-
-    const handleSubjectChange = (index, field, value) => {
-        const newSubjects = [...currentSemSubjects];
-        newSubjects[index][field] = value;
-        setCurrentSemSubjects(newSubjects);
-    };
-
-    const calculateProjectedCPI = () => {
-        let totalPoints = currentCPI * totalCredits;
-        let newCredits = totalCredits;
-
-        currentSemSubjects.forEach(sub => {
-            const credits = Number(sub.credits) || 0;
-            const points = getGradePoint(sub.expectedGrade);
-            totalPoints += points * credits;
-            newCredits += credits;
+        currentSubjects.forEach(sub => {
+            if (sub.credits > 0) { // Only count graded subjects
+                const gp = gradePoints[sub.expectedGrade] || 0;
+                currentSemWeightedPoints += (sub.credits * gp);
+                currentSemCredits += sub.credits;
+            }
         });
 
-        return newCredits > 0 ? (totalPoints / newCredits).toFixed(2) : 0;
+        const safeCredits = currentSemCredits || 1;
+        const expSPI = (currentSemWeightedPoints / safeCredits).toFixed(2);
+
+        const previousWeightedPoints = stats.cpi * stats.totalCredits;
+        const totalWeightedPoints = previousWeightedPoints + currentSemWeightedPoints;
+        const totalCreditsAll = stats.totalCredits + currentSemCredits;
+
+        const expCPI = totalCreditsAll > 0 ? (totalWeightedPoints / totalCreditsAll).toFixed(2) : 0;
+
+        return { expSPI, expCPI, currentSemCredits, currentSemWeightedPoints };
     };
 
+    const { expSPI, expCPI, currentSemCredits, currentSemWeightedPoints } = calculateStats();
+
+    // COLORS
+    const COLORS = ['#00C49F', '#f3f4f6'];
+
     return (
-        <div className="space-y-6 animate-fade-in p-2 md:p-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold dark:text-white flex items-center gap-3">
-                    <Trophy className="h-8 w-8 text-yellow-500" />
-                    My Academic Results
+        <div className="space-y-6 animate-fade-in p-2 md:p-6 bg-gray-50 dark:bg-black min-h-screen font-sans">
+
+            {/* Header / Title */}
+            <div className="bg-white dark:bg-[#121212] p-4 rounded-xl shadow-sm border-l-4 border-blue-500 flex justify-between items-center">
+                <h1 className="text-xl font-bold text-gray-800 dark:text-gray-100 uppercase tracking-wide">
+                    My Result
                 </h1>
+                <Printer className="text-red-500 h-6 w-6 cursor-pointer hover:scale-110 transition" />
+            </div>
+
+            {/* Graphs Section */}
+            <div className="bg-white dark:bg-[#121212] p-6 rounded-xl shadow-sm">
+                <h2 className="text-blue-500 font-semibold mb-6 flex items-center gap-2">
+                    <span className="text-xl">➔</span> Progress Graph
+                </h2>
+
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* Bar Chart */}
+                    <div className="lg:col-span-2 h-80">
+                        <h3 className="text-gray-500 mb-4 text-sm font-medium">Progress Line</h3>
+                        <ResponsiveContainer width="100%" height="100%">
+                            <BarChart data={graphData} barGap={0} barCategoryGap="20%">
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                                <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                                <YAxis hide domain={[0, 10]} />
+                                <Tooltip cursor={{ fill: 'transparent' }} />
+                                <Legend iconType="square" />
+                                <Bar dataKey="SPI" fill="#007bff" name="SPI" radius={[2, 2, 0, 0]} />
+                                <Bar dataKey="CPI" fill="#00d2d3" name="CPI" radius={[2, 2, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+
+                    {/* Donut Chart */}
+                    <div className="h-80 flex flex-col items-center justify-center">
+                        <h3 className="text-gray-500 mb-4 text-sm font-medium w-full text-left">Overall Percentage</h3>
+                        <div className="relative w-48 h-48">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <PieChart>
+                                    <Pie
+                                        data={[{ value: parseFloat(overallPercentage) }, { value: 100 - parseFloat(overallPercentage) }]}
+                                        cx="50%"
+                                        cy="50%"
+                                        innerRadius={60}
+                                        outerRadius={80}
+                                        startAngle={90}
+                                        endAngle={-270}
+                                        dataKey="value"
+                                    >
+                                        <Cell fill="#00d2d3" />
+                                        <Cell fill="#f3f4f6" />
+                                    </Pie>
+                                </PieChart>
+                            </ResponsiveContainer>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <p className="text-gray-400 text-xs">Percentage</p>
+                                <p className="text-3xl font-bold text-white dark:text-white">{overallPercentage}%</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* CPI Calculator Button (Floating or distinct) */}
+            <div className="flex justify-end">
                 <button
                     onClick={() => setShowCalculator(true)}
-                    className="flex items-center gap-2 bg-indigo-600 text-white px-4 py-2 rounded-xl hover:bg-indigo-700 transition shadow-lg"
+                    className="flex items-center gap-2 bg-gradient-to-r from-blue-400 to-blue-600 text-white px-6 py-3 rounded-full hover:shadow-xl transition-all font-bold tracking-wide"
                 >
                     <Calculator className="h-5 w-5" />
-                    CPI Calculator
+                    OPEN CPI CALCULATOR
                 </button>
             </div>
 
-            {/* Current Stats Card */}
-            <div className="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 text-white shadow-lg">
-                <div className="flex justify-between items-center">
-                    <div>
-                        <p className="text-indigo-100 mb-1">Current CPI</p>
-                        <h2 className="text-4xl font-bold">{currentCPI}</h2>
+
+            {/* Previous Semesters List */}
+            <div className="space-y-4">
+                {Object.keys(resultsBySem).map(sem => (
+                    <div key={sem} className="bg-white dark:bg-[#121212] p-4 rounded-xl shadow-sm border-l-4 border-green-400">
+                        <div className="flex justify-between items-center cursor-pointer">
+                            <h3 className="text-blue-400 font-medium">Semester -{sem}</h3>
+                            <span className="text-gray-400 text-sm">Click to Expand</span>
+                        </div>
                     </div>
-                    <div className="text-right">
-                        <p className="text-indigo-100 mb-1">Total Credits</p>
-                        <h2 className="text-2xl font-bold">{totalCredits}</h2>
-                    </div>
-                </div>
+                ))}
             </div>
 
-            {loading ? <p>Loading...</p> : Object.keys(resultsBySem).length === 0 ? (
-                <div className="p-12 text-center text-gray-500 bg-white/60 dark:bg-white/5 backdrop-blur-xl rounded-2xl border border-white/20 dark:border-white/10">
-                    <Award className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                    <p>No results declared yet.</p>
-                </div>
-            ) : (
-                Object.keys(resultsBySem).map(sem => (
-                    <div key={sem} className="bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl rounded-2xl shadow-lg border border-white/20 dark:border-white/10 overflow-hidden">
-                        <div className="p-6 border-b border-gray-100 dark:border-white/10 flex justify-between items-center bg-gray-50/50 dark:bg-white/5">
-                            <h3 className="text-lg font-bold dark:text-white">{sem} Semester</h3>
-                            <div className="flex items-center gap-2 bg-indigo-100 dark:bg-indigo-500/20 px-3 py-1 rounded-full text-indigo-700 dark:text-indigo-300 text-sm font-bold border border-indigo-200 dark:border-indigo-500/30">
-                                <TrendingUp className="h-4 w-4" />
-                                SPI: {calculateSPI(resultsBySem[sem])}
-                            </div>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-sm text-left">
-                                <thead className="text-xs text-gray-700 dark:text-gray-300 uppercase bg-gray-50/30 dark:bg-white/5 border-b dark:border-white/10">
-                                    <tr>
-                                        <th className="px-6 py-3">Subject</th>
-                                        <th className="px-6 py-3">Exam Type</th>
-                                        <th className="px-6 py-3">Marks</th>
-                                        <th className="px-6 py-3">Grade</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100 dark:divide-white/5">
-                                    {resultsBySem[sem].map((res) => (
-                                        <tr key={res._id} className="hover:bg-indigo-50/50 dark:hover:bg-white/5 transition">
-                                            <td className="px-6 py-4 font-medium text-gray-900 dark:text-white">{res.subject}</td>
-                                            <td className="px-6 py-4 text-gray-500 dark:text-gray-400">{res.examType}</td>
-                                            <td className="px-6 py-4 text-gray-900 dark:text-gray-300 font-medium">
-                                                {res.marks} <span className="text-gray-400 text-xs">/ {res.totalMarks}</span>
-                                            </td>
-                                            <td className="px-6 py-4">
-                                                <span className={`px-2 py-1 rounded text-xs font-bold 
-                                                    ${res.grade === 'F' ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-300 border border-red-200 dark:border-red-500/30' :
-                                                        res.grade.startsWith('A') ? 'bg-green-100 text-green-700 dark:bg-green-500/20 dark:text-green-300 border border-green-200 dark:border-green-500/30' :
-                                                            'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30'}`}>
-                                                    {res.grade}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                ))
-            )}
-
-            {/* Calculator Modal */}
+            {/* CPI Calculator Modal - Full Screen Overlay Style */}
             {showCalculator && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-2xl w-full max-w-2xl rounded-2xl p-6 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto border border-white/20 dark:border-white/10">
-                        <div className="flex justify-between items-center mb-6">
-                            <h3 className="text-xl font-bold dark:text-white flex items-center gap-2">
-                                <Calculator className="h-6 w-6 text-indigo-600" />
-                                CPI Predictor
-                            </h3>
-                            <button onClick={() => setShowCalculator(false)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300">
-                                <X className="h-6 w-6" />
+                <div className="fixed inset-0 bg-gray-100 dark:bg-[#0a0a0a] z-50 overflow-auto animate-fade-in font-sans">
+                    {/* Top Bar */}
+                    <div className="bg-white dark:bg-[#121212] h-16 flex items-center justify-between px-6 shadow-sm sticky top-0 z-10">
+                        <div className="flex items-center gap-4">
+                            <Menu className="h-6 w-6 text-gray-500" />
+                            <img src="/logo.svg" alt="Logo" className="h-8" />
+                            <span className="text-blue-500 font-bold text-lg hidden md:block">Campus AI</span>
+                        </div>
+                        <div className="flex items-center gap-4">
+                            <span className="font-semibold text-gray-700 dark:text-gray-200">{user.name}</span>
+                            <button onClick={() => setShowCalculator(false)} className="bg-red-50 text-red-500 p-2 rounded-full hover:bg-red-100">
+                                <X className="h-5 w-5" />
                             </button>
                         </div>
+                    </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                            <div className="p-4 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10">
-                                <p className="text-sm text-gray-500 dark:text-gray-400">Current CPI</p>
-                                <p className="text-2xl font-bold dark:text-white">{currentCPI}</p>
-                            </div>
-                            <div className="p-4 bg-indigo-50 dark:bg-indigo-500/10 rounded-xl border border-indigo-100 dark:border-indigo-500/20">
-                                <p className="text-sm text-indigo-600 dark:text-indigo-400">Projected CPI</p>
-                                <p className="text-3xl font-bold text-indigo-700 dark:text-indigo-300">{calculateProjectedCPI()}</p>
-                            </div>
-                        </div>
+                    <div className="max-w-7xl mx-auto p-4 md:p-8">
+                        <div className="bg-white dark:bg-[#121212] rounded-xl shadow-xl overflow-hidden min-h-[80vh]">
 
-                        <div className="space-y-4">
-                            <div className="flex justify-between items-center">
-                                <h4 className="font-semibold dark:text-white">Current Semester Subjects</h4>
-                                <button onClick={handleAddSubject} className="text-sm text-indigo-600 font-bold hover:underline">+ Add Subject</button>
+                            {/* Title Bar */}
+                            <div className="p-4 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
+                                <h2 className="flex items-center gap-2 text-xl font-bold text-gray-700 dark:text-gray-200">
+                                    <Calculator className="text-blue-500" />
+                                    CPI CALCULATOR
+                                </h2>
+                                <button className="border border-blue-400 text-blue-500 px-4 py-1 rounded text-sm font-medium hover:bg-blue-50">Instructions</button>
                             </div>
 
-                            {currentSemSubjects.map((sub, index) => (
-                                <div key={index} className="flex gap-3 items-end">
-                                    <div className="flex-1">
-                                        <label className="text-xs text-gray-500">Subject Name</label>
-                                        <input
-                                            type="text"
-                                            className="w-full p-2 rounded-lg border bg-white dark:bg-white/5 dark:border-white/10 dark:text-white focus:ring-2 focus:ring-indigo-500/50 outline-none"
-                                            value={sub.name}
-                                            onChange={(e) => handleSubjectChange(index, 'name', e.target.value)}
-                                            placeholder="Subject"
-                                        />
-                                    </div>
-                                    <div className="w-20">
-                                        <label className="text-xs text-gray-500">Credits</label>
-                                        <input
-                                            type="number"
-                                            className="w-full p-2 rounded-lg border bg-white dark:bg-white/5 dark:border-white/10 dark:text-white focus:ring-2 focus:ring-indigo-500/50 outline-none"
-                                            value={sub.credits}
-                                            onChange={(e) => handleSubjectChange(index, 'credits', e.target.value)}
-                                        />
-                                    </div>
-                                    <div className="w-24">
-                                        <label className="text-xs text-gray-500">Exp. Grade</label>
-                                        <select
-                                            className="w-full p-2 rounded-lg border bg-white dark:bg-white/5 dark:border-white/10 dark:text-white focus:ring-2 focus:ring-indigo-500/50 outline-none"
-                                            value={sub.expectedGrade}
-                                            onChange={(e) => handleSubjectChange(index, 'expectedGrade', e.target.value)}
-                                        >
-                                            {['A+', 'A', 'B+', 'B', 'C', 'D', 'F'].map(g => <option key={g} value={g}>{g}</option>)}
-                                        </select>
-                                    </div>
-                                    <button onClick={() => handleRemoveSubject(index)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg">
-                                        <X className="h-5 w-5" />
-                                    </button>
+                            {/* Stat Boxes */}
+                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6">
+                                <div className="bg-blue-200/50 p-4 rounded text-center">
+                                    <p className="text-white font-bold text-lg">Current Semester : VI</p>
                                 </div>
-                            ))}
+                                <div className="bg-cyan-500 p-4 rounded text-center">
+                                    <p className="text-white font-bold text-lg">CPI Upto VI Sem : {stats.cpi}</p>
+                                </div>
+                                <div className="bg-orange-500 p-4 rounded text-center shadow-lg shadow-orange-500/30 transform hover:scale-105 transition">
+                                    <p className="text-white/80 text-xs uppercase font-bold tracking-wider">Expected SPI</p>
+                                    <p className="text-white font-bold text-3xl mt-1">{expSPI}</p>
+                                </div>
+                                <div className="bg-cyan-500 p-4 rounded text-center shadow-lg shadow-cyan-500/30 transform hover:scale-105 transition">
+                                    <p className="text-white/80 text-xs uppercase font-bold tracking-wider">Expected CPI</p>
+                                    <p className="text-white font-bold text-3xl mt-1">{expCPI}</p>
+                                </div>
+                            </div>
+
+                            <p className="px-6 text-sm text-gray-500">* Select your 'Expected Grade' from list for specified subject</p>
+
+                            {/* Table */}
+                            <div className="p-6 overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="bg-blue-400 text-white">
+                                            <th className="p-3 text-center w-12">#</th>
+                                            <th className="p-3 text-left">Sub.Code</th>
+                                            <th className="p-3 text-left">Sub.Name</th>
+                                            <th className="p-3 text-left w-32">Exp. Grade</th>
+                                            <th className="p-3 text-center w-20">Credit</th>
+                                            <th className="p-3 text-center w-20">GP</th>
+                                            <th className="p-3 text-center w-20">Weight</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-gray-700 dark:text-gray-300">
+                                        {currentSubjects.map((sub, idx) => {
+                                            const gp = gradePoints[sub.expectedGrade] || 0;
+                                            const weight = sub.credits * gp;
+                                            return (
+                                                <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-white/5">
+                                                    <td className="p-3 text-center">{idx + 1}</td>
+                                                    <td className="p-3 font-medium text-gray-500">{sub.code}</td>
+                                                    <td className="p-3 uppercase font-medium">{sub.name}</td>
+                                                    <td className="p-3">
+                                                        <select
+                                                            className="w-full border rounded p-1 dark:bg-black dark:border-white/20"
+                                                            value={sub.expectedGrade}
+                                                            onChange={(e) => {
+                                                                const newSubs = [...currentSubjects];
+                                                                newSubs[idx].expectedGrade = e.target.value;
+                                                                setCurrentSubjects(newSubs);
+                                                            }}
+                                                        >
+                                                            {['O', 'A+', 'A', 'B+', 'B', 'C', 'P', 'F', 'S'].map(g => (
+                                                                <option key={g} value={g}>{g}</option>
+                                                            ))}
+                                                        </select>
+                                                    </td>
+                                                    <td className="p-3 text-center bg-green-500 text-white font-bold rounded-sm mx-1">{sub.credits}</td>
+                                                    <td className="p-3 text-center">{gp}</td>
+                                                    <td className="p-3 text-center">{weight}</td>
+                                                </tr>
+                                            );
+                                        })}
+                                        {/* Total Row */}
+                                        <tr className="bg-blue-400 text-white font-bold">
+                                            <td colSpan={4} className="p-3 text-center">Total</td>
+                                            <td className="p-3 text-center">{currentSemCredits}</td>
+                                            <td className="p-3 text-center">0</td>
+                                            <td className="p-3 text-center">{currentSemWeightedPoints}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Calculation Logic & Formulas */}
+                            <div className="p-6 bg-gray-50 dark:bg-white/5 mx-6 mb-6 rounded-xl border border-gray-200 dark:border-white/10">
+                                <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
+                                    <Calculator className="h-4 w-4 text-indigo-500" /> Calculation Logic
+                                </h3>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+                                    <div className="space-y-2">
+                                        <p><span className="font-semibold">SPI (Semester Performance Index):</span></p>
+                                        <code className="block bg-white dark:bg-black/30 p-2 rounded border border-gray-200 dark:border-white/10 text-xs text-indigo-600 dark:text-indigo-400">
+                                            SPI = (Σ (Credit × Grade Point)) / (Σ Credits)
+                                        </code>
+                                        <p className="text-gray-500 text-xs mt-1">Calculated based on the selected 'Expected Grade' for current semester subjects.</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p><span className="font-semibold">CPI (Cumulative Performance Index):</span></p>
+                                        <code className="block bg-white dark:bg-black/30 p-2 rounded border border-gray-200 dark:border-white/10 text-xs text-indigo-600 dark:text-indigo-400">
+                                            CPI = (Prev. weighted points + Curr. weighted points) / (Prev. Credits + Curr. Credits)
+                                        </code>
+                                        <p className="text-gray-500 text-xs mt-1">Combines your previous academic history with the projected current semester performance.</p>
+                                    </div>
+                                </div>
+
+                                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/10">
+                                    <p className="font-semibold text-xs mb-2">Grade Point Mapping:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {Object.entries(gradePoints).map(([grade, point]) => (
+                                            <span key={grade} className="px-2 py-1 bg-white dark:bg-black/30 rounded border border-gray-200 dark:border-white/10 text-xs">
+                                                <span className="font-bold text-gray-700 dark:text-gray-300">{grade}</span> = <span className="text-indigo-600 font-bold">{point}</span>
+                                            </span>
+                                        ))}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

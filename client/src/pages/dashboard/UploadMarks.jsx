@@ -9,7 +9,8 @@ const UploadMarks = () => {
     const [loading, setLoading] = useState(false);
 
     // Filter State
-    const [subject, setSubject] = useState('');
+    const [selectedClassMapId, setSelectedClassMapId] = useState('');
+    const [subject, setSubject] = useState(''); // Derived for UI/API
     const [semester, setSemester] = useState('3rd'); // Default
 
     // We assume this is a comprehensive upload now
@@ -33,16 +34,26 @@ const UploadMarks = () => {
     }, [user.token]);
 
     const fetchStudents = async () => {
+        if (!selectedClassMapId) return;
         setLoading(true);
         try {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
 
-            // Find department/year from the selected subject object in our list
-            const selectedSubObj = subjects.find(s => s.subject === subject);
-            let queryParams = `?subject=${encodeURIComponent(subject)}`;
-            if (selectedSubObj) {
-                queryParams += `&department=${selectedSubObj.department}&year=${selectedSubObj.year}`;
+            // Find department/year from the selected class map ID
+            const selectedSubObj = subjects.find(s => s._id === selectedClassMapId);
+
+            if (!selectedSubObj) {
+                alert("Invalid Subject Selection");
+                setLoading(false);
+                return;
             }
+
+            // Update subject state for passing to save
+            setSubject(selectedSubObj.subject);
+
+            let queryParams = `?subject=${encodeURIComponent(selectedSubObj.subject)}`;
+            queryParams += `&department=${selectedSubObj.department}&year=${selectedSubObj.year}`;
+            if (selectedSubObj.section) queryParams += `&section=${selectedSubObj.section}`;
 
             const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/results/students-for-marks${queryParams}`, config);
             setStudents(data);
@@ -88,7 +99,7 @@ const UploadMarks = () => {
     };
 
     const handleSave = async () => {
-        if (!subject) return alert("Please select a subject");
+        if (!selectedClassMapId) return alert("Please select a subject");
 
         const promises = Object.keys(marksData).map(async (studentId) => {
             const marksObj = marksData[studentId];
@@ -102,7 +113,7 @@ const UploadMarks = () => {
             const config = { headers: { Authorization: `Bearer ${user.token}` } };
             return axios.post(`${import.meta.env.VITE_API_URL}/api/results/add`, {
                 studentId,
-                subject,
+                subject, // Use the state set during fetch
                 semester,
                 examType: 'Comprehensive', // Storing as one big result
                 components: {
@@ -132,17 +143,17 @@ const UploadMarks = () => {
                 Upload Marks
             </h1>
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+            <div className="bg-white/80 dark:bg-gray-800/80 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                     <div>
                         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject</label>
                         <select
-                            value={subject}
-                            onChange={(e) => setSubject(e.target.value)}
+                            value={selectedClassMapId}
+                            onChange={(e) => setSelectedClassMapId(e.target.value)}
                             className="w-full p-2.5 rounded-xl border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                         >
                             <option value="">Select Subject</option>
-                            {subjects.map(s => <option key={s._id} value={s.subject}>{s.subject} ({s.department}-{s.year})</option>)}
+                            {subjects.map(s => <option key={s._id} value={s._id}>{s.subject} ({s.department}-{s.year})</option>)}
                         </select>
                     </div>
                     <div>
@@ -166,8 +177,8 @@ const UploadMarks = () => {
                     <div className="flex items-end">
                         <button
                             onClick={fetchStudents}
-                            disabled={!subject}
-                            className="w-full bg-indigo-600 text-white py-2.5 rounded-xl hover:bg-indigo-700 transition disabled:bg-gray-400"
+                            disabled={!selectedClassMapId}
+                            className="w-full bg-indigo-600 text-white py-2.5 rounded-xl hover:bg-indigo-700 transition disabled:bg-gray-400 shadow-lg shadow-indigo-500/20"
                         >
                             {loading ? 'Fetching...' : 'Fetch Students'}
                         </button>

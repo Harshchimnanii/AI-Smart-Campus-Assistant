@@ -102,9 +102,9 @@ const TeacherDashboard = () => {
             {/* Main Stats */}
             {!zenMode && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-indigo-500 transition-colors group">
+                    <div className="bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/20 dark:border-white/10 hover:border-indigo-500 transition-all group">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl group-hover:rotate-12 transition-transform">
+                            <div className="p-3 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 rounded-xl group-hover:rotate-12 transition-transform shadow-lg shadow-indigo-500/20">
                                 <BookOpen className="w-6 h-6" />
                             </div>
                             <div>
@@ -114,9 +114,9 @@ const TeacherDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-emerald-500 transition-colors group">
+                    <div className="bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/20 dark:border-white/10 hover:border-emerald-500 transition-all group">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-xl group-hover:rotate-12 transition-transform">
+                            <div className="p-3 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-xl group-hover:rotate-12 transition-transform shadow-lg shadow-emerald-500/20">
                                 <Users className="w-6 h-6" />
                             </div>
                             <div>
@@ -126,9 +126,9 @@ const TeacherDashboard = () => {
                         </div>
                     </div>
 
-                    <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:border-amber-500 transition-colors group">
+                    <div className="bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/20 dark:border-white/10 hover:border-amber-500 transition-all group">
                         <div className="flex items-center gap-4">
-                            <div className="p-3 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 rounded-xl group-hover:rotate-12 transition-transform">
+                            <div className="p-3 bg-amber-100 dark:bg-amber-500/20 text-amber-600 dark:text-amber-400 rounded-xl group-hover:rotate-12 transition-transform shadow-lg shadow-amber-500/20">
                                 <Clock className="w-6 h-6" />
                             </div>
                             <div>
@@ -142,16 +142,16 @@ const TeacherDashboard = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 {/* Schedule Column */}
-                <div className="lg:col-span-2 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div className="lg:col-span-2 bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/20 dark:border-white/10">
                     <h2 className="text-xl font-bold mb-4 dark:text-white flex items-center gap-2">
                         Today's Grind 📅
                     </h2>
                     <div className="space-y-4">
                         {todaysSchedule.length > 0 ? (
                             todaysSchedule.map((cls) => (
-                                <div key={cls._id} className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700/50 rounded-xl border border-gray-100 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-gray-700 transition-colors">
+                                <div key={cls._id} className="flex items-center justify-between p-4 bg-gray-50/50 dark:bg-white/5 rounded-xl border border-gray-100 dark:border-white/10 hover:bg-indigo-50 dark:hover:bg-white/10 transition-colors">
                                     <div className="flex items-center gap-4">
-                                        <div className="h-12 w-12 rounded-2xl bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-xl">
+                                        <div className="h-12 w-12 rounded-2xl bg-indigo-100 dark:bg-indigo-500/20 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-black text-xl border border-indigo-200 dark:border-indigo-500/30">
                                             {cls.subject.charAt(0)}
                                         </div>
                                         <div>
@@ -160,7 +160,7 @@ const TeacherDashboard = () => {
                                         </div>
                                     </div>
                                     <div className="text-right">
-                                        <div className="inline-block px-3 py-1 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-100 dark:border-gray-600">
+                                        <div className="inline-block px-3 py-1 bg-white dark:bg-white/5 rounded-lg shadow-sm border border-gray-100 dark:border-white/10">
                                             <p className="font-bold text-indigo-600 dark:text-indigo-400">{cls.startTime}</p>
                                         </div>
                                         <p className="text-xs text-gray-400 mt-1">{cls.endTime}</p>
@@ -177,7 +177,7 @@ const TeacherDashboard = () => {
 
                 {/* Gen Z Feature: Quick Poll */}
                 <div className="space-y-6">
-                    <div className="bg-gradient-to-br from-purple-600 to-indigo-600 p-6 rounded-2xl text-white shadow-lg">
+                    <div className="bg-gradient-to-br from-purple-600/90 to-indigo-600/90 backdrop-blur-xl p-6 rounded-2xl text-white shadow-lg border border-white/20">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-bold flex items-center gap-2">
                                 <BarChart2 className="h-5 w-5" /> Quick Poll
@@ -216,14 +216,14 @@ const TeacherDashboard = () => {
                     </div>
 
                     {!zenMode && (
-                        <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                        <div className="bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/20 dark:border-white/10">
                             <h3 className="font-bold text-gray-900 dark:text-white mb-2">Priority Tasks</h3>
                             <div className="space-y-2">
-                                <div className="flex items-center gap-3 p-3 bg-red-50 dark:bg-red-900/10 rounded-xl text-red-600 dark:text-red-400">
+                                <div className="flex items-center gap-3 p-3 bg-red-50/50 dark:bg-red-500/10 rounded-xl text-red-600 dark:text-red-400 border border-red-100 dark:border-red-500/20">
                                     <div className="h-2 w-2 rounded-full bg-red-500 animate-pulse"></div>
                                     <span className="text-sm font-semibold">Upload Marks (End Sem)</span>
                                 </div>
-                                <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl text-gray-500 dark:text-gray-400 decoration-slice">
+                                <div className="flex items-center gap-3 p-3 bg-gray-50/50 dark:bg-white/5 rounded-xl text-gray-500 dark:text-gray-400 decoration-slice border border-gray-100 dark:border-white/10">
                                     <Check className="h-4 w-4" />
                                     <span className="text-sm line-through">Check Attendance</span>
                                 </div>

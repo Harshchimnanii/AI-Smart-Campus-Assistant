@@ -209,4 +209,39 @@ router.put('/:id/academic-stats', protect, async (req, res) => {
     }
 });
 
+// @desc    Update user profile (Admin/Teacher/Self)
+// @route   PUT /api/users/:id/profile
+router.put('/:id/profile', protect, async (req, res) => {
+    try {
+        // Allow Admins, Teachers, or the user themselves
+        if (req.user.role !== 'admin' && req.user.role !== 'teacher' && req.user.role !== 'ceo' && req.user._id.toString() !== req.params.id) {
+            return res.status(401).json({ message: 'Not authorized' });
+        }
+
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Update fields
+        const fieldsToUpdate = [
+            'name', 'email', 'rollNumber', 'department', 'year', 'section',
+            'regNo', 'univRollNo', 'fatherName', 'motherName',
+            'address', 'permanentAddress', 'dob', 'gender', 'category', 'bloodGroup',
+            'fileNo', 'libCode', 'placementStatus'
+        ];
+
+        fieldsToUpdate.forEach(field => {
+            if (req.body[field] !== undefined) user[field] = req.body[field];
+        });
+
+        // Update nested objects individually to avoid overwriting entire object if partial data sent
+        if (req.body.highSchool) user.highSchool = { ...user.highSchool, ...req.body.highSchool };
+        if (req.body.intermediate) user.intermediate = { ...user.intermediate, ...req.body.intermediate };
+
+        await user.save();
+        res.json(user);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+});
+
 module.exports = router;

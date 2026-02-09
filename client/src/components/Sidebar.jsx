@@ -44,6 +44,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 { name: 'Section Management', path: '/dashboard/admin/sections', icon: Layers },
                 { name: 'Manage Notices', path: '/dashboard/admin/notices', icon: Bell },
                 { name: 'Help Desk', path: '/dashboard/admin/complaints', icon: AlertCircle },
+                { name: 'ID Card Logs', path: '/dashboard/admin/id-logs', icon: Briefcase },
             ];
         }
         return [];

@@ -14,6 +14,24 @@ const resultSchema = new mongoose.Schema({
         type: String, // e.g., "3rd"
         required: true
     },
+    courseCode: {
+        type: String, // e.g., BCSG 0002
+        required: true
+    },
+    credits: {
+        type: Number,
+        required: true,
+        default: 0
+    },
+    type: {
+        type: String, // Theory (T) / Practical (P)
+        enum: ['T', 'P', 'G', 'D', 'O'], // T=Theory, P=Practical, G=General Proficiency, D=Project, O=Open Elective
+        default: 'T'
+    },
+    category: {
+        type: String, // e.g., "Program Core", "Basic Sciences"
+        default: 'Program Core'
+    },
     examType: {
         type: String, // e.g., "Mid-Sem", "End-Sem"
         required: true

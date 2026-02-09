@@ -76,7 +76,7 @@ router.post('/add', protect, teacher, async (req, res) => {
 // @desc    Get students with attendance for a specific subject
 // @route   GET /api/results/students-for-marks
 router.get('/students-for-marks', protect, teacher, async (req, res) => {
-    const { subject, department, year } = req.query;
+    const { subject, department, year, section } = req.query;
 
     try {
         // 1. Get Students
@@ -84,6 +84,7 @@ router.get('/students-for-marks', protect, teacher, async (req, res) => {
         let query = { role: 'student' };
         if (department) query.department = department;
         if (year) query.year = year;
+        if (section) query.section = section;
 
         const students = await User.find(query).select('name rollNumber department year');
 
@@ -159,6 +160,20 @@ router.get('/class', protect, teacher, async (req, res) => {
         // query.faculty = req.user._id; 
 
         const results = await Result.find(query).populate('student', 'name rollNumber');
+        res.json(results);
+    } catch (error) {
+        res.status(500).json({ message: 'Server Error', error: error.message });
+    }
+});
+
+// @desc    Get all results for a specific student (Admin/Teacher View)
+// @route   GET /api/results/student/:studentId
+// @access  Private (Teacher, Admin)
+router.get('/student/:studentId', protect, teacher, async (req, res) => {
+    try {
+        const results = await Result.find({ student: req.params.studentId })
+            .populate('faculty', 'name')
+            .sort({ semester: -1, createdAt: -1 });
         res.json(results);
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });

@@ -31,6 +31,7 @@ app.use('/api/class-map/', require('./routes/classMapRoutes'));
 app.use('/api/results/', require('./routes/resultRoutes'));
 app.use('/api/academics/', require('./routes/academicRoutes'));
 app.use('/api/analytics/', require('./routes/analyticsRoutes'));
+app.use('/api/idcard/', require('./routes/idCardRoutes'));
 
 app.use('/uploads', express.static('uploads'));
 

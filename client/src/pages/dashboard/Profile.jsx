@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { User, Mail, Phone, MapPin, Shield, Save, Key } from 'lucide-react';
 import axios from 'axios';
+import IDCard from '../../components/IDCard';
 
 const Profile = () => {
     const { user, login } = useAuth(); // We might need to update user context, for now let's just use it to display
@@ -19,6 +20,7 @@ const Profile = () => {
 
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState('');
+    const [showIDCard, setShowIDCard] = useState(false);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -76,6 +78,15 @@ const Profile = () => {
                         <span className="inline-block bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 px-3 py-1 rounded-full text-xs font-semibold mt-2 uppercase">
                             {user.role}
                         </span>
+
+                        <div className="mt-4">
+                            <button
+                                onClick={() => setShowIDCard(true)}
+                                className="text-xs bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-500/30 font-bold"
+                            >
+                                Generate ID Card
+                            </button>
+                        </div>
 
                         <div className="mt-6 space-y-3 text-left">
                             <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400 p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
@@ -169,6 +180,9 @@ const Profile = () => {
                     </div>
                 </div>
             </div>
+            {showIDCard && (
+                <IDCard student={user} onClose={() => setShowIDCard(false)} />
+            )}
         </div>
     );
 };
