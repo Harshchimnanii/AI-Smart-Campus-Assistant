@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { Calculator, X, Printer, Menu, ChevronDown, ChevronUp } from 'lucide-react';
+import { Calculator, X, Printer, Menu, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     PieChart, Pie, Cell
@@ -9,6 +9,7 @@ import {
 
 const MyResults = () => {
     const { user } = useAuth();
+    console.log("MyResults User Context:", user); // Debugging
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCalculator, setShowCalculator] = useState(false);
@@ -21,8 +22,8 @@ const MyResults = () => {
     // Previous Academic Data
     const [stats, setStats] = useState({ cpi: 0, totalCredits: 0 });
 
-    // Sem 6 Presets
-    const [currentSubjects, setCurrentSubjects] = useState([
+    // Default Sem 6 Subjects
+    const defaultSubjects = [
         { code: 'BCSC 1012', name: 'DESIGN AND ANALYSIS OF ALGORITHMS', credits: 3, expectedGrade: 'A+' },
         { code: 'BCSE 0105', name: 'MACHINE LEARNING', credits: 3, expectedGrade: 'A+' },
         { code: 'BCSE 0252', name: 'FULL STACK USING NODE JS', credits: 3, expectedGrade: 'A+' },
@@ -32,7 +33,13 @@ const MyResults = () => {
         { code: 'BCSJ 0951', name: 'MINI PROJECT - II', credits: 2, expectedGrade: 'A+' },
         { code: 'BTDH 0304', name: 'SOFT SKILLS - IV', credits: 4, expectedGrade: 'A+' },
         { code: 'MBAM 0002', name: 'LEADERSHIP AND ORGANISATIONAL BEHAVIOUR', credits: 0, expectedGrade: 'S' }
-    ]);
+    ];
+
+    const [currentSubjects, setCurrentSubjects] = useState(defaultSubjects);
+
+    const resetSubjects = () => {
+        setCurrentSubjects(defaultSubjects);
+    };
 
     const gradePoints = { 'O': 10, 'A+': 9, 'A': 8, 'B+': 7, 'B': 6, 'C': 5, 'P': 4, 'F': 0, 'S': 0 };
 
@@ -41,7 +48,19 @@ const MyResults = () => {
             try {
                 const config = { headers: { Authorization: `Bearer ${user.token}` } };
                 const { data } = await axios.get(`${import.meta.env.VITE_API_URL}/api/results/my-results`, config);
-                setResults(data);
+                // API now returns { results, academicStats } or just results (array)
+                if (data.results) {
+                    setResults(data.results);
+                    if (data.academicStats) {
+                        console.log("Fetched Academic Stats from API:", data.academicStats);
+                        setStats(data.academicStats);
+                    }
+                } else {
+                    // Fallback for old API structure (array)
+                    if (Array.isArray(data)) {
+                        setResults(data);
+                    }
+                }
             } catch (error) {
                 console.error("Error fetching results", error);
             } finally {
@@ -49,6 +68,7 @@ const MyResults = () => {
             }
         };
 
+        // Initialize with context data if available, but API will override with fresh data
         if (user.academicStats) {
             setStats(user.academicStats);
         }
@@ -65,7 +85,6 @@ const MyResults = () => {
         const semesterResults = resultsBySem[sem];
         const totalPoints = semesterResults.reduce((sum, r) => sum + (gradePoints[r.grade] || 0), 0);
         const spi = (totalPoints / semesterResults.length).toFixed(2);
-        // CPI logic is complex without history, using random slight variation for demo or simplistic calc
         return {
             name: sem,
             SPI: parseFloat(spi),
@@ -91,7 +110,10 @@ const MyResults = () => {
         const safeCredits = currentSemCredits || 1;
         const expSPI = (currentSemWeightedPoints / safeCredits).toFixed(2);
 
+        // Previous Data
         const previousWeightedPoints = stats.cpi * stats.totalCredits;
+
+        // Total
         const totalWeightedPoints = previousWeightedPoints + currentSemWeightedPoints;
         const totalCreditsAll = stats.totalCredits + currentSemCredits;
 
@@ -101,9 +123,6 @@ const MyResults = () => {
     };
 
     const { expSPI, expCPI, currentSemCredits, currentSemWeightedPoints } = calculateStats();
-
-    // COLORS
-    const COLORS = ['#00C49F', '#f3f4f6'];
 
     return (
         <div className="space-y-6 animate-fade-in p-2 md:p-6 bg-gray-50 dark:bg-black min-h-screen font-sans">
@@ -169,14 +188,14 @@ const MyResults = () => {
                 </div>
             </div>
 
-            {/* CPI Calculator Button (Floating or distinct) */}
+            {/* CPI Calculator Button */}
             <div className="flex justify-end">
                 <button
                     onClick={() => setShowCalculator(true)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-blue-400 to-blue-600 text-white px-6 py-3 rounded-full hover:shadow-xl transition-all font-bold tracking-wide"
+                    className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-full shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 font-bold tracking-wide ring-2 ring-indigo-200 dark:ring-indigo-900"
                 >
-                    <Calculator className="h-5 w-5" />
-                    OPEN CPI CALCULATOR
+                    <Calculator className="h-6 w-6" />
+                    OPEN INTELLIGENT CALCULATOR
                 </button>
             </div>
 
@@ -245,142 +264,185 @@ const MyResults = () => {
                 ))}
             </div>
 
-            {/* CPI Calculator Modal - Full Screen Overlay Style */}
+            {/* CPI Calculator Modal - Enhanced Glassmorphism */}
             {showCalculator && (
-                <div className="fixed inset-0 bg-gray-100 dark:bg-[#0a0a0a] z-50 overflow-auto animate-fade-in font-sans">
-                    {/* Top Bar */}
-                    <div className="bg-white dark:bg-[#121212] h-16 flex items-center justify-between px-6 shadow-sm sticky top-0 z-10">
-                        <div className="flex items-center gap-4">
-                            <Menu className="h-6 w-6 text-gray-500" />
-                            <img src="/logo.svg" alt="Logo" className="h-8" />
-                            <span className="text-blue-500 font-bold text-lg hidden md:block">Campus AI</span>
-                        </div>
-                        <div className="flex items-center gap-4">
-                            <span className="font-semibold text-gray-700 dark:text-gray-200">{user.name}</span>
-                            <button onClick={() => setShowCalculator(false)} className="bg-red-50 text-red-500 p-2 rounded-full hover:bg-red-100">
-                                <X className="h-5 w-5" />
-                            </button>
-                        </div>
-                    </div>
+                <div className="fixed inset-0 z-50 overflow-auto animate-fade-in flex items-center justify-center p-4">
+                    {/* Backdrop */}
+                    <div
+                        className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+                        onClick={() => setShowCalculator(false)}
+                    />
 
-                    <div className="max-w-7xl mx-auto p-4 md:p-8">
-                        <div className="bg-white dark:bg-[#121212] rounded-xl shadow-xl overflow-hidden min-h-[80vh]">
+                    {/* Modal Content */}
+                    <div className="relative bg-white/90 dark:bg-[#1a1a1a]/95 backdrop-blur-xl w-full max-w-6xl rounded-3xl shadow-2xl border border-white/20 dark:border-white/10 overflow-hidden text-gray-800 dark:text-gray-100">
 
-                            {/* Title Bar */}
-                            <div className="p-4 border-b border-gray-100 dark:border-white/5 flex justify-between items-center">
-                                <h2 className="flex items-center gap-2 text-xl font-bold text-gray-700 dark:text-gray-200">
-                                    <Calculator className="text-blue-500" />
-                                    CPI CALCULATOR
-                                </h2>
-                                <button className="border border-blue-400 text-blue-500 px-4 py-1 rounded text-sm font-medium hover:bg-blue-50">Instructions</button>
-                            </div>
-
-                            {/* Stat Boxes */}
-                            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6">
-                                <div className="bg-blue-200/50 p-4 rounded text-center">
-                                    <p className="text-white font-bold text-lg">Current Semester : VI</p>
+                        {/* Header */}
+                        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-white/5 dark:to-transparent">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
+                                    <Calculator className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                                 </div>
-                                <div className="bg-cyan-500 p-4 rounded text-center">
-                                    <p className="text-white font-bold text-lg">CPI Upto VI Sem : {stats.cpi}</p>
-                                </div>
-                                <div className="bg-orange-500 p-4 rounded text-center shadow-lg shadow-orange-500/30 transform hover:scale-105 transition">
-                                    <p className="text-white/80 text-xs uppercase font-bold tracking-wider">Expected SPI</p>
-                                    <p className="text-white font-bold text-3xl mt-1">{expSPI}</p>
-                                </div>
-                                <div className="bg-cyan-500 p-4 rounded text-center shadow-lg shadow-cyan-500/30 transform hover:scale-105 transition">
-                                    <p className="text-white/80 text-xs uppercase font-bold tracking-wider">Expected CPI</p>
-                                    <p className="text-white font-bold text-3xl mt-1">{expCPI}</p>
+                                <div>
+                                    <h2 className="text-xl font-bold tracking-tight">CPI Simulator</h2>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">Predict your academic performance</p>
                                 </div>
                             </div>
+                            <div className="flex items-center gap-4">
+                                <button
+                                    onClick={resetSubjects}
+                                    className="hidden md:flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition"
+                                >
+                                    <RotateCcw className="h-4 w-4" /> Reset Default
+                                </button>
+                                <button
+                                    onClick={() => setShowCalculator(false)}
+                                    className="p-2 hover:bg-red-100 dark:hover:bg-red-900/30 text-gray-500 hover:text-red-500 rounded-full transition-colors"
+                                >
+                                    <X className="h-5 w-5" />
+                                </button>
+                            </div>
+                        </div>
 
-                            <p className="px-6 text-sm text-gray-500">* Select your 'Expected Grade' from list for specified subject</p>
+                        <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                            {/* Table */}
-                            <div className="p-6 overflow-x-auto">
-                                <table className="w-full text-sm">
-                                    <thead>
-                                        <tr className="bg-blue-400 text-white">
-                                            <th className="p-3 text-center w-12">#</th>
-                                            <th className="p-3 text-left">Sub.Code</th>
-                                            <th className="p-3 text-left">Sub.Name</th>
-                                            <th className="p-3 text-left w-32">Exp. Grade</th>
-                                            <th className="p-3 text-center w-20">Credit</th>
-                                            <th className="p-3 text-center w-20">GP</th>
-                                            <th className="p-3 text-center w-20">Weight</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100 dark:divide-white/5 text-gray-700 dark:text-gray-300">
-                                        {currentSubjects.map((sub, idx) => {
-                                            const gp = gradePoints[sub.expectedGrade] || 0;
-                                            const weight = sub.credits * gp;
-                                            return (
-                                                <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-white/5">
-                                                    <td className="p-3 text-center">{idx + 1}</td>
-                                                    <td className="p-3 font-medium text-gray-500">{sub.code}</td>
-                                                    <td className="p-3 uppercase font-medium">{sub.name}</td>
-                                                    <td className="p-3">
-                                                        <select
-                                                            className="w-full border rounded p-1 dark:bg-black dark:border-white/20"
-                                                            value={sub.expectedGrade}
-                                                            onChange={(e) => {
-                                                                const newSubs = [...currentSubjects];
-                                                                newSubs[idx].expectedGrade = e.target.value;
-                                                                setCurrentSubjects(newSubs);
-                                                            }}
-                                                        >
-                                                            {['O', 'A+', 'A', 'B+', 'B', 'C', 'P', 'F', 'S'].map(g => (
-                                                                <option key={g} value={g}>{g}</option>
-                                                            ))}
-                                                        </select>
-                                                    </td>
-                                                    <td className="p-3 text-center bg-green-500 text-white font-bold rounded-sm mx-1">{sub.credits}</td>
-                                                    <td className="p-3 text-center">{gp}</td>
-                                                    <td className="p-3 text-center">{weight}</td>
+                            {/* Left Panel: Inputs */}
+                            <div className="lg:col-span-8 flex flex-col gap-6">
+                                {/* Warning / Info */}
+                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 rounded-r-lg text-sm text-yellow-800 dark:text-yellow-200 flex justify-between items-center">
+                                    <p>Adjust expected grades to see how they impact your final CPI.</p>
+                                    <button onClick={resetSubjects} className="md:hidden text-xs bg-yellow-200 dark:bg-yellow-800 px-2 py-1 rounded">Reset</button>
+                                </div>
+
+                                {/* Subjects Table */}
+                                <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-black/20">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-sm">
+                                            <thead>
+                                                <tr className="bg-gray-50 dark:bg-white/5 text-left text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">
+                                                    <th className="p-4 w-16 text-center">#</th>
+                                                    <th className="p-4">Subject</th>
+                                                    <th className="p-4 w-32">Grade</th>
+                                                    <th className="p-4 w-20 text-center">Credit</th>
+                                                    <th className="p-4 w-20 text-center">Points</th>
                                                 </tr>
-                                            );
-                                        })}
-                                        {/* Total Row */}
-                                        <tr className="bg-blue-400 text-white font-bold">
-                                            <td colSpan={4} className="p-3 text-center">Total</td>
-                                            <td className="p-3 text-center">{currentSemCredits}</td>
-                                            <td className="p-3 text-center">0</td>
-                                            <td className="p-3 text-center">{currentSemWeightedPoints}</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
+                                            </thead>
+                                            <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                                                {currentSubjects.map((sub, idx) => {
+                                                    const gp = gradePoints[sub.expectedGrade] || 0;
+                                                    const weight = sub.credits * gp;
+                                                    return (
+                                                        <tr key={idx} className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group">
+                                                            <td className="p-4 text-center text-gray-400 group-hover:text-blue-500">{idx + 1}</td>
+                                                            <td className="p-4">
+                                                                <div className="font-semibold text-gray-700 dark:text-gray-200">{sub.code}</div>
+                                                                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase mt-0.5">{sub.name}</div>
+                                                            </td>
+                                                            <td className="p-4">
+                                                                <div className="relative">
+                                                                    <select
+                                                                        className="w-full appearance-none bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 pr-8 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow cursor-pointer hover:bg-white dark:hover:bg-white/20"
+                                                                        value={sub.expectedGrade}
+                                                                        onChange={(e) => {
+                                                                            const newSubs = [...currentSubjects];
+                                                                            newSubs[idx].expectedGrade = e.target.value;
+                                                                            setCurrentSubjects(newSubs);
+                                                                        }}
+                                                                    >
+                                                                        {['O', 'A+', 'A', 'B+', 'B', 'C', 'P', 'F', 'S'].map(g => (
+                                                                            <option key={g} value={g}>{g}</option>
+                                                                        ))}
+                                                                    </select>
+                                                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                                                        <ChevronDown className="h-4 w-4" />
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td className="p-4 text-center">
+                                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 text-xs font-bold text-gray-600 dark:text-gray-300">
+                                                                    {sub.credits}
+                                                                </span>
+                                                            </td>
+                                                            <td className="p-4 text-center font-mono text-gray-600 dark:text-gray-400">
+                                                                {weight}
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
                             </div>
 
-                            {/* Calculation Logic & Formulas */}
-                            <div className="p-6 bg-gray-50 dark:bg-white/5 mx-6 mb-6 rounded-xl border border-gray-200 dark:border-white/10">
-                                <h3 className="font-bold text-gray-700 dark:text-gray-200 mb-3 flex items-center gap-2">
-                                    <Calculator className="h-4 w-4 text-indigo-500" /> Calculation Logic
-                                </h3>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
-                                    <div className="space-y-2">
-                                        <p><span className="font-semibold">SPI (Semester Performance Index):</span></p>
-                                        <code className="block bg-white dark:bg-black/30 p-2 rounded border border-gray-200 dark:border-white/10 text-xs text-indigo-600 dark:text-indigo-400">
-                                            SPI = (Σ (Credit × Grade Point)) / (Σ Credits)
-                                        </code>
-                                        <p className="text-gray-500 text-xs mt-1">Calculated based on the selected 'Expected Grade' for current semester subjects.</p>
+                            {/* Right Panel: Results & Stats */}
+                            <div className="lg:col-span-4 space-y-6">
+                                {/* Main Results Card */}
+                                <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden">
+                                    {/* Background Decor */}
+                                    <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
+                                    <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 rounded-full bg-black/10 blur-3xl"></div>
+
+                                    <h3 className="text-white/80 font-medium text-sm uppercase tracking-wider mb-6">Predicted Performance</h3>
+
+                                    <div className="grid grid-cols-2 gap-6 mb-6">
+                                        <div className="relative z-10">
+                                            <p className="text-white/60 text-xs font-medium mb-1">Expected SPI</p>
+                                            <p className="text-4xl font-extrabold tracking-tight">{expSPI}</p>
+                                        </div>
+                                        <div className="relative z-10">
+                                            <p className="text-indigo-200 text-xs font-medium mb-1">Total Credits</p>
+                                            <p className="text-4xl font-extrabold tracking-tight">{currentSemCredits}</p>
+                                        </div>
                                     </div>
-                                    <div className="space-y-2">
-                                        <p><span className="font-semibold">CPI (Cumulative Performance Index):</span></p>
-                                        <code className="block bg-white dark:bg-black/30 p-2 rounded border border-gray-200 dark:border-white/10 text-xs text-indigo-600 dark:text-indigo-400">
-                                            CPI = (Prev. weighted points + Curr. weighted points) / (Prev. Credits + Curr. Credits)
-                                        </code>
-                                        <p className="text-gray-500 text-xs mt-1">Combines your previous academic history with the projected current semester performance.</p>
+
+                                    <div className="pt-6 border-t border-white/20 relative z-10">
+                                        <p className="text-white/80 text-xs font-medium mb-1 uppercase">Expected Cumulative CPI</p>
+                                        <div className="flex items-baseline gap-2">
+                                            <p className="text-6xl font-black tracking-tight">{expCPI}</p>
+                                            <span className="text-indigo-200 font-medium">/ 10.0</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="mt-4 pt-4 border-t border-gray-200 dark:border-white/10">
-                                    <p className="font-semibold text-xs mb-2">Grade Point Mapping:</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {Object.entries(gradePoints).map(([grade, point]) => (
-                                            <span key={grade} className="px-2 py-1 bg-white dark:bg-black/30 rounded border border-gray-200 dark:border-white/10 text-xs">
-                                                <span className="font-bold text-gray-700 dark:text-gray-300">{grade}</span> = <span className="text-indigo-600 font-bold">{point}</span>
-                                            </span>
-                                        ))}
+                                {/* Historical Data Snippet */}
+                                <div className="bg-gray-50 dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10">
+                                    <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Academic History</h4>
+                                    <div className="space-y-4">
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600 dark:text-gray-300">Previous CPI</span>
+                                            <input
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                max="10"
+                                                value={stats.cpi}
+                                                onChange={(e) => setStats({ ...stats, cpi: parseFloat(e.target.value) || 0 })}
+                                                className="w-24 bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded px-2 py-1 text-right font-mono font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600 dark:text-gray-300">Credits Earned</span>
+                                            <input
+                                                type="number"
+                                                step="1"
+                                                min="0"
+                                                value={stats.totalCredits}
+                                                onChange={(e) => setStats({ ...stats, totalCredits: parseFloat(e.target.value) || 0 })}
+                                                className="w-24 bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded px-2 py-1 text-right font-mono font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div className="flex justify-between items-center">
+                                            <span className="text-gray-600 dark:text-gray-300">Points Earned</span>
+                                            <span className="font-mono font-bold text-gray-800 dark:text-white">{(stats.cpi * stats.totalCredits).toFixed(1)}</span>
+                                        </div>
                                     </div>
+                                </div>
+
+                                {/* Info */}
+                                <div className="text-xs text-gray-400 text-center leading-relaxed px-4">
+                                    Calculation assumes standard credit weighting.
+                                    <br />
+                                    CPI = (Total Weighted Points) / (Total Credits)
                                 </div>
                             </div>
                         </div>

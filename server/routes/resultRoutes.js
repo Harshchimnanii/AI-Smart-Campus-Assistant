@@ -138,7 +138,14 @@ router.get('/students-for-marks', protect, teacher, async (req, res) => {
 router.get('/my-results', protect, async (req, res) => {
     try {
         const results = await Result.find({ student: req.user._id }).sort({ semester: -1, createdAt: -1 });
-        res.json(results);
+        // Return both results and the user's latest academic stats
+        // req.user is already populated by the protect middleware
+        console.log(`[API] Fetching results for ${req.user.name}`);
+        console.log(`[API] Returning Stats:`, req.user.academicStats);
+        res.json({
+            results,
+            academicStats: req.user.academicStats
+        });
     } catch (error) {
         res.status(500).json({ message: 'Server Error', error: error.message });
     }

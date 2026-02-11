@@ -76,6 +76,11 @@ router.post('/login', async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            department: user.department,
+            year: user.year,
+            rollNumber: user.rollNumber,
+            section: user.section,
+            academicStats: user.academicStats,
             token: generateToken(user._id),
         });
 
@@ -164,6 +169,11 @@ router.post('/login-otp', async (req, res) => {
             name: user.name,
             email: user.email,
             role: user.role,
+            department: user.department,
+            year: user.year,
+            rollNumber: user.rollNumber,
+            section: user.section,
+            academicStats: user.academicStats,
             token: generateToken(user._id),
         });
 
