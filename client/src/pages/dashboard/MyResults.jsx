@@ -83,8 +83,22 @@ const MyResults = () => {
 
     const graphData = Object.keys(resultsBySem).sort().map(sem => {
         const semesterResults = resultsBySem[sem];
-        const totalPoints = semesterResults.reduce((sum, r) => sum + (gradePoints[r.grade] || 0), 0);
-        const spi = (totalPoints / semesterResults.length).toFixed(2);
+        let totalWeightedPoints = 0;
+        let totalCredits = 0;
+
+        semesterResults.forEach(r => {
+            const credits = Number(r.credits) || 0;
+            const grade = r.grade;
+            // Only count if credits > 0 and grade is NOT 'S'
+            if (credits > 0 && grade !== 'S') {
+                const gp = gradePoints[grade] || 0;
+                totalWeightedPoints += (credits * gp);
+                totalCredits += credits;
+            }
+        });
+
+        const spi = totalCredits > 0 ? (totalWeightedPoints / totalCredits).toFixed(2) : 0;
+
         return {
             name: sem,
             SPI: parseFloat(spi),
@@ -100,7 +114,10 @@ const MyResults = () => {
         let currentSemCredits = 0;
 
         currentSubjects.forEach(sub => {
-            if (sub.credits > 0) { // Only count graded subjects
+            // Updated Logic: Only count courses that have credits AND are not 'S' (Satisfactory) grade
+            // 'S' grade courses usually have credits but don't count towards CPI/SPI in many systems.
+            // If the user wants 'S' to be 0 points but NOT count in credits, we exclude it here.
+            if (sub.credits > 0 && sub.expectedGrade !== 'S') {
                 const gp = gradePoints[sub.expectedGrade] || 0;
                 currentSemWeightedPoints += (sub.credits * gp);
                 currentSemCredits += sub.credits;
@@ -108,7 +125,7 @@ const MyResults = () => {
         });
 
         const safeCredits = currentSemCredits || 1;
-        const expSPI = (currentSemWeightedPoints / safeCredits).toFixed(2);
+        const expSPI = currentSemCredits > 0 ? (currentSemWeightedPoints / safeCredits).toFixed(2) : "0.00";
 
         // Previous Data
         const previousWeightedPoints = stats.cpi * stats.totalCredits;
@@ -117,7 +134,7 @@ const MyResults = () => {
         const totalWeightedPoints = previousWeightedPoints + currentSemWeightedPoints;
         const totalCreditsAll = stats.totalCredits + currentSemCredits;
 
-        const expCPI = totalCreditsAll > 0 ? (totalWeightedPoints / totalCreditsAll).toFixed(2) : 0;
+        const expCPI = totalCreditsAll > 0 ? (totalWeightedPoints / totalCreditsAll).toFixed(2) : "0.00";
 
         return { expSPI, expCPI, currentSemCredits, currentSemWeightedPoints };
     };
@@ -427,7 +444,7 @@ const MyResults = () => {
                                             />
                                         </div>
                                         <div className="flex justify-between items-center text-sm">
-                                            <span className="text-gray-600 dark:text-gray-300">Credits Earned</span>
+                                            <span className="text-gray-600 dark:text-gray-300" title="Only include credits for graded subjects. Exclude 'S' grade credits.">Graded Credits (Excl. 'S')</span>
                                             <input
                                                 type="number"
                                                 step="1"

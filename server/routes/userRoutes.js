@@ -21,10 +21,42 @@ router.get('/', protect, async (req, res) => {
     }
 });
 
+const multer = require('multer');
+const path = require('path');
+
+// Multer Config
+const storage = multer.diskStorage({
+    destination(req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename(req, file, cb) {
+        cb(null, `${file.fieldname}-${Date.now()}${path.extname(file.originalname)}`);
+    }
+});
+
+function checkFileType(file, cb) {
+    const filetypes = /jpg|jpeg|png/;
+    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const mimetype = filetypes.test(file.mimetype);
+
+    if (extname && mimetype) {
+        return cb(null, true);
+    } else {
+        cb('Images only!');
+    }
+}
+
+const upload = multer({
+    storage,
+    fileFilter: function (req, file, cb) {
+        checkFileType(file, cb);
+    }
+});
+
 // @route   PUT /api/users/profile
-// @desc    Update user profile
+// @desc    Update user profile & Upload Image
 // @access  Private
-router.put('/profile', protect, async (req, res) => {
+router.put('/profile', protect, upload.single('image'), async (req, res) => {
     try {
         const user = await User.findById(req.user._id);
 
@@ -33,6 +65,11 @@ router.put('/profile', protect, async (req, res) => {
             user.email = req.body.email || user.email;
             user.phone = req.body.phone || user.phone;
             user.address = req.body.address || user.address;
+
+            // Handle Image Upload
+            if (req.file) {
+                user.profilePicture = `/${req.file.path.replace(/\\/g, "/")}`; // Normalize path
+            }
 
             if (req.body.password) {
                 user.password = req.body.password;
@@ -47,6 +84,7 @@ router.put('/profile', protect, async (req, res) => {
                 email: updatedUser.email,
                 phone: updatedUser.phone,
                 address: updatedUser.address,
+                profilePicture: updatedUser.profilePicture,
                 role: updatedUser.role,
                 department: updatedUser.department,
                 year: updatedUser.year,

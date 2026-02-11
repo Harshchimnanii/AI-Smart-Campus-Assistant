@@ -11,6 +11,7 @@ const Assignment = require('../models/Assignment');
 const Timetable = require('../models/Timetable');
 const Notice = require('../models/Notice');
 const MessMenu = require('../models/MessMenu');
+const Result = require('../models/Result');
 
 dotenv.config();
 
@@ -48,23 +49,40 @@ const getSystemContext = async (userId) => {
         // 4. Fetch Mess Menu for Today
         const messMenu = await MessMenu.findOne({ day: today });
 
-        // 5. Fetch Attendance Summary
-        // Note: Real attendance calculation would go here based on Attendance model
-        // For now, we simulate or fetch if available
+        // 5. Fetch Recent Results (Latest 5)
+        const recentResults = await Result.find({ student: userId })
+            .sort({ createdAt: -1 })
+            .limit(10); // Fetch a few more to give good context
+
+        // 6. Format Academic Stats
+        const academicStats = user.academicStats || { cpi: 'N/A', totalCredits: 0 };
+        const backlogs = user.backlogs || [];
 
         return `
-        User Context:
+        User Profile:
         - Name: ${user.name}
-        - Role: ${user.role}
+        - Roll Number: ${user.rollNumber || 'N/A'}
+        - Email: ${user.email}
+        - Phone: ${user.phone || 'N/A'}
         - Dept: ${user.department || 'N/A'}
         - Year: ${user.year || 'N/A'}
-        - Current Time: ${new Date().toLocaleString()} (${today})
+        - Section: ${user.section || 'N/A'}
+        - Address: ${user.address || 'N/A'}
 
-        Campus Data:
-        - Today's Timetable: ${timetable.length ? JSON.stringify(timetable.map(t => `${t.startTime}-${t.endTime}: ${t.subject} (${t.room})`)) : "No classes today."}
-        - Upcoming Assignments: ${assignments.length ? JSON.stringify(assignments.map(a => `${a.title} (Due: ${new Date(a.dueDate).toLocaleDateString()})`)) : "No pending assignments."}
-        - Latest Notices: ${notices.length ? JSON.stringify(notices.map(n => `${n.title}: ${n.description}`)) : "No new notices."}
-        - Mess Menu (${today}): ${messMenu ? JSON.stringify(messMenu) : "Menu not available."}
+        Academic Status:
+        - CPI: ${academicStats.cpi}
+        - Total Credits Earned: ${academicStats.totalCredits}
+        - Active Backlogs: ${backlogs.filter(b => b.status === 'active').length}
+        - Backlog Subjects: ${backlogs.filter(b => b.status === 'active').map(b => b.subject).join(', ') || 'None'}
+
+        Recent Results (Last few entries):
+        ${recentResults.length > 0 ? recentResults.map(r => `- ${r.subject} (${r.semester}): Grade ${r.grade}, Credits ${r.credits}`).join('\n') : "No recent results found."}
+
+        Campus Data (Today: ${new Date().toLocaleString()} - ${today}):
+        - Timetable: ${timetable.length ? JSON.stringify(timetable.map(t => `${t.startTime}-${t.endTime}: ${t.subject} (${t.room})`)) : "No classes today."}
+        - Assignments: ${assignments.length ? JSON.stringify(assignments.map(a => `${a.title} (Due: ${new Date(a.dueDate).toLocaleDateString()})`)) : "No pending assignments."}
+        - Notices: ${notices.length ? JSON.stringify(notices.map(n => `${n.title}: ${n.description}`)) : "No new notices."}
+        - Mess Menu: ${messMenu ? JSON.stringify(messMenu) : "Menu not available."}
         `;
     } catch (error) {
         console.error("Error fetching context:", error);
@@ -98,21 +116,25 @@ router.post('/', protect, async (req, res) => {
                     parts: [{
                         text: `
                     You are a Smart Campus AI Assistant. 
-                    You have access to the user's real-time data below. User this data to answer their questions accurately.
-                    If the answer is found in the context, give a direct answer.
-                    If asked about general academic topics, explain them simply.
-                    Keep responses concise, friendly, and helpful. 
+                    You have access to the user's PERSONAL academic and campus data.
+                    User this data to answer their questions accurately. 
+                    
+                    CRITICAL INSTRUCTIONS:
+                    1. If the user asks about their marks, cpi, attendance, or schedule, USE THE CONTEXT PROVIDED.
+                    2. If the user asks "What is my CPI?", look at the 'Academic Status' section.
+                    3. If the user asks "What is my grade in X?", look at the 'Recent Results' section.
+                    4. Be friendly but professional.
                     
                     ${userContext}
                     ` }],
                 },
                 {
                     role: "model",
-                    parts: [{ text: "Understood. I have the user's real-time context (timetable, assignments, menu, notices) and I am ready to assist." }],
+                    parts: [{ text: "Understood. I have the user's personal academic and campus context. I am ready to answer specific questions about their performance, schedule, and profile." }],
                 },
             ],
             generationConfig: {
-                maxOutputTokens: 500,
+                maxOutputTokens: 800,
             },
         });
 
