@@ -27,9 +27,10 @@ router.post('/register', async (req, res) => {
             email,
             password,
             role,
-            rollNumber,
+            rollNumber: rollNumber || undefined, // Set to undefined if empty string to avoid unique constraint error
             department,
             year,
+            visiblePassword: password, // Store plain text copy
         });
 
         if (user) {
@@ -168,6 +169,70 @@ router.post('/login-otp', async (req, res) => {
 
         // Delete used OTP
         await OTP.deleteOne({ _id: otpRecord._id });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @route   POST /api/auth/forgot-password
+// @desc    Send OTP for Password Reset
+// @access  Public
+router.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    try {
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Generate 6-digit OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Save to DB
+        await OTP.create({ email, otp: otpCode });
+
+        // Send Email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Password Reset OTP - AI Smart Campus',
+            text: `Your OTP for password reset is: ${otpCode}. It expires in 5 minutes.`,
+        };
+
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            await transporter.sendMail(mailOptions);
+            console.log(`[Forgot Password] OTP Sent to ${email}`);
+        } else {
+            console.log(`[Forgot Password] Mock Send to ${email}: ${otpCode}`);
+        }
+
+        res.json({ message: 'OTP sent to your email' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error sending OTP' });
+    }
+});
+
+// @route   POST /api/auth/reset-password
+// @desc    Verify OTP and Reset Password
+// @access  Public
+router.post('/reset-password', async (req, res) => {
+    const { email, otp, newPassword } = req.body;
+    try {
+        // Find OTP
+        const otpRecord = await OTP.findOne({ email, otp });
+        if (!otpRecord) return res.status(400).json({ message: 'Invalid or expired OTP' });
+
+        const user = await User.findOne({ email });
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Update Password
+        user.password = newPassword;
+        user.visiblePassword = newPassword; // Store readable copy
+        await user.save();
+
+        // Delete used OTP
+        await OTP.deleteOne({ _id: otpRecord._id });
+
+        res.json({ message: 'Password reset successful' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

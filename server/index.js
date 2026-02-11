@@ -12,6 +12,8 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+console.log("Email Service Configured for:", process.env.EMAIL_USER || "Not Configured");
+
 // Routes
 const authRoutes = require('./routes/authRoutes');
 const chatRoutes = require('./routes/chatRoutes');

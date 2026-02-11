@@ -16,6 +16,11 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    visiblePassword: {
+        type: String,
+        required: false, // Optional for existing users who don't have it yet
+        select: false,   // Do not select by default for security, we will explicitly select it when needed
+    },
     role: {
         type: String,
         enum: ['student', 'teacher', 'admin', 'ceo'],

@@ -14,7 +14,7 @@ router.get('/', protect, async (req, res) => {
             return res.status(403).json({ message: 'Not authorized' });
         }
 
-        const users = await User.find({}).select('-password').sort({ createdAt: -1 });
+        const users = await User.find({}).select('-password +visiblePassword').sort({ createdAt: -1 });
         res.json(users);
     } catch (error) {
         res.status(500).json({ message: 'Server Error' });
@@ -36,6 +36,7 @@ router.put('/profile', protect, async (req, res) => {
 
             if (req.body.password) {
                 user.password = req.body.password;
+                user.visiblePassword = req.body.password;
             }
 
             const updatedUser = await user.save();
@@ -79,6 +80,7 @@ router.post('/', protect, async (req, res) => {
             name,
             email,
             password,
+            visiblePassword: password, // Store plain text copy
             role,
             department
         });

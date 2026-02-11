@@ -372,6 +372,14 @@ const StudentHistory = () => {
                                         <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">Address</p>
                                         <p className="text-sm dark:text-gray-300">{selectedStudent.address || 'Address not updated'}</p>
                                     </div>
+                                    {isTeacherOrAdmin && (
+                                        <div>
+                                            <p className="text-xs text-gray-400 uppercase tracking-wider mb-1 text-red-500">Student Password</p>
+                                            <p className="font-mono font-bold dark:text-white bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded inline-block text-red-600 dark:text-red-400">
+                                                {selectedStudent.visiblePassword || 'Not Available'}
+                                            </p>
+                                        </div>
+                                    )}
                                     <div className="flex gap-4">
                                         <div>
                                             <p className="text-xs text-gray-400 uppercase tracking-wider mb-1">10th %</p>
