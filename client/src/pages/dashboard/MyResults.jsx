@@ -136,14 +136,14 @@ const MyResults = () => {
             </div>
 
             {/* Graphs Section */}
-            <div className="bg-white dark:bg-[#121212] p-6 rounded-xl shadow-sm">
+            <div className="bg-white dark:bg-[#121212] p-4 md:p-6 rounded-xl shadow-sm">
                 <h2 className="text-blue-500 font-semibold mb-6 flex items-center gap-2">
                     <span className="text-xl">➔</span> Progress Graph
                 </h2>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     {/* Bar Chart */}
-                    <div className="lg:col-span-2 h-80">
+                    <div className="lg:col-span-2 h-64 md:h-80">
                         <h3 className="text-gray-500 mb-4 text-sm font-medium">Progress Line</h3>
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={graphData} barGap={0} barCategoryGap="20%">
@@ -159,9 +159,9 @@ const MyResults = () => {
                     </div>
 
                     {/* Donut Chart */}
-                    <div className="h-80 flex flex-col items-center justify-center">
+                    <div className="h-64 md:h-80 flex flex-col items-center justify-center">
                         <h3 className="text-gray-500 mb-4 text-sm font-medium w-full text-left">Overall Percentage</h3>
-                        <div className="relative w-48 h-48">
+                        <div className="relative w-40 h-40 md:w-48 md:h-48">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart>
                                     <Pie
@@ -181,7 +181,7 @@ const MyResults = () => {
                             </ResponsiveContainer>
                             <div className="absolute inset-0 flex flex-col items-center justify-center">
                                 <p className="text-gray-400 text-xs">Percentage</p>
-                                <p className="text-3xl font-bold text-white dark:text-white">{overallPercentage}%</p>
+                                <p className="text-2xl md:text-3xl font-bold text-white dark:text-white">{overallPercentage}%</p>
                             </div>
                         </div>
                     </div>
@@ -192,10 +192,10 @@ const MyResults = () => {
             <div className="flex justify-end">
                 <button
                     onClick={() => setShowCalculator(true)}
-                    className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-8 py-4 rounded-full shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 font-bold tracking-wide ring-2 ring-indigo-200 dark:ring-indigo-900"
+                    className="w-full md:w-auto flex items-center justify-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white px-6 py-3 md:px-8 md:py-4 rounded-xl md:rounded-full shadow-lg hover:shadow-2xl hover:scale-105 transition-all duration-300 font-bold tracking-wide ring-2 ring-indigo-200 dark:ring-indigo-900"
                 >
-                    <Calculator className="h-6 w-6" />
-                    OPEN INTELLIGENT CALCULATOR
+                    <Calculator className="h-5 w-5 md:h-6 md:w-6" />
+                    <span>OPEN CALCULATOR</span>
                 </button>
             </div>
 
@@ -225,8 +225,8 @@ const MyResults = () => {
                                     <table className="w-full text-sm text-left">
                                         <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-white/5">
                                             <tr>
-                                                <th className="px-4 py-3 rounded-l-lg">Subject Code</th>
-                                                <th className="px-4 py-3">Subject Name</th>
+                                                <th className="px-4 py-3 rounded-l-lg whitespace-nowrap">Code</th>
+                                                <th className="px-4 py-3 min-w-[150px]">Subject Name</th>
                                                 <th className="px-4 py-3 text-center">Grade</th>
                                                 <th className="px-4 py-3 text-center rounded-r-lg">Credits</th>
                                             </tr>
@@ -234,8 +234,15 @@ const MyResults = () => {
                                         <tbody className="divide-y divide-gray-100 dark:divide-white/5">
                                             {resultsBySem[sem].map((result, idx) => (
                                                 <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-white/5 transition">
-                                                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap">{result.subCode}</td>
-                                                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300 min-w-[200px]">{result.subName}</td>
+                                                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap text-xs md:text-sm">
+                                                        {result.courseCode || result.subCode}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300 min-w-[200px] text-xs md:text-sm">
+                                                        {result.subject || result.subName}
+                                                        <div className="md:hidden text-[10px] text-gray-400 mt-1">
+                                                            {result.examType}
+                                                        </div>
+                                                    </td>
                                                     <td className="px-4 py-3 text-center">
                                                         <span className={`px-2 py-1 rounded-md text-xs font-bold ${['O', 'A+', 'A'].includes(result.grade) ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
                                                             ['F'].includes(result.grade) ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
@@ -266,7 +273,7 @@ const MyResults = () => {
 
             {/* CPI Calculator Modal - Enhanced Glassmorphism */}
             {showCalculator && (
-                <div className="fixed inset-0 z-50 overflow-auto animate-fade-in flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-50 overflow-y-auto animate-fade-in flex items-start md:items-center justify-center p-0 md:p-4">
                     {/* Backdrop */}
                     <div
                         className="fixed inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
@@ -274,25 +281,25 @@ const MyResults = () => {
                     />
 
                     {/* Modal Content */}
-                    <div className="relative bg-white/90 dark:bg-[#1a1a1a]/95 backdrop-blur-xl w-full max-w-6xl rounded-3xl shadow-2xl border border-white/20 dark:border-white/10 overflow-hidden text-gray-800 dark:text-gray-100">
+                    <div className="relative bg-white/90 dark:bg-[#1a1a1a]/95 backdrop-blur-xl w-full md:max-w-6xl md:rounded-3xl shadow-2xl border border-white/20 dark:border-white/10 overflow-hidden text-gray-800 dark:text-gray-100 min-h-screen md:min-h-0">
 
                         {/* Header */}
-                        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-white/10 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-white/5 dark:to-transparent">
+                        <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-200 dark:border-white/10 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-white/5 dark:to-transparent sticky top-0 z-20 backdrop-blur-md">
                             <div className="flex items-center gap-3">
                                 <div className="p-2 bg-blue-100 dark:bg-blue-900/50 rounded-lg">
                                     <Calculator className="h-6 w-6 text-blue-600 dark:text-blue-400" />
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-bold tracking-tight">CPI Simulator</h2>
-                                    <p className="text-xs text-gray-500 dark:text-gray-400">Predict your academic performance</p>
+                                    <h2 className="text-lg md:text-xl font-bold tracking-tight">CPI Simulator</h2>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400 hidden md:block">Predict your academic performance</p>
                                 </div>
                             </div>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 md:gap-4">
                                 <button
                                     onClick={resetSubjects}
-                                    className="hidden md:flex items-center gap-2 text-sm font-medium text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition"
+                                    className="flex items-center gap-2 text-xs md:text-sm font-medium text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition"
                                 >
-                                    <RotateCcw className="h-4 w-4" /> Reset Default
+                                    <RotateCcw className="h-3 w-3 md:h-4 md:w-4" /> <span className="hidden md:inline">Reset Default</span><span className="md:hidden">Reset</span>
                                 </button>
                                 <button
                                     onClick={() => setShowCalculator(false)}
@@ -303,14 +310,13 @@ const MyResults = () => {
                             </div>
                         </div>
 
-                        <div className="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                        <div className="p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 md:gap-8 pb-20 md:pb-6">
 
                             {/* Left Panel: Inputs */}
-                            <div className="lg:col-span-8 flex flex-col gap-6">
+                            <div className="lg:col-span-8 flex flex-col gap-6 order-2 lg:order-1">
                                 {/* Warning / Info */}
-                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-4 rounded-r-lg text-sm text-yellow-800 dark:text-yellow-200 flex justify-between items-center">
+                                <div className="bg-yellow-50 dark:bg-yellow-900/20 border-l-4 border-yellow-400 p-3 rounded-r-lg text-xs md:text-sm text-yellow-800 dark:text-yellow-200">
                                     <p>Adjust expected grades to see how they impact your final CPI.</p>
-                                    <button onClick={resetSubjects} className="md:hidden text-xs bg-yellow-200 dark:bg-yellow-800 px-2 py-1 rounded">Reset</button>
                                 </div>
 
                                 {/* Subjects Table */}
@@ -319,11 +325,11 @@ const MyResults = () => {
                                         <table className="w-full text-sm">
                                             <thead>
                                                 <tr className="bg-gray-50 dark:bg-white/5 text-left text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400">
-                                                    <th className="p-4 w-16 text-center">#</th>
-                                                    <th className="p-4">Subject</th>
-                                                    <th className="p-4 w-32">Grade</th>
-                                                    <th className="p-4 w-20 text-center">Credit</th>
-                                                    <th className="p-4 w-20 text-center">Points</th>
+                                                    <th className="p-2 md:p-4 w-12 text-center">#</th>
+                                                    <th className="p-2 md:p-4 min-w-[120px]">Subject</th>
+                                                    <th className="p-2 md:p-4 w-24">Grade</th>
+                                                    <th className="p-2 md:p-4 w-16 text-center">Cr</th>
+                                                    <th className="p-2 md:p-4 w-16 text-center">Pts</th>
                                                 </tr>
                                             </thead>
                                             <tbody className="divide-y divide-gray-100 dark:divide-white/5">
@@ -332,15 +338,15 @@ const MyResults = () => {
                                                     const weight = sub.credits * gp;
                                                     return (
                                                         <tr key={idx} className="hover:bg-blue-50/50 dark:hover:bg-blue-900/10 transition-colors group">
-                                                            <td className="p-4 text-center text-gray-400 group-hover:text-blue-500">{idx + 1}</td>
-                                                            <td className="p-4">
-                                                                <div className="font-semibold text-gray-700 dark:text-gray-200">{sub.code}</div>
-                                                                <div className="text-xs text-gray-500 dark:text-gray-400 uppercase mt-0.5">{sub.name}</div>
+                                                            <td className="p-2 md:p-4 text-center text-gray-400 group-hover:text-blue-500 text-xs">{idx + 1}</td>
+                                                            <td className="p-2 md:p-4">
+                                                                <div className="font-semibold text-gray-700 dark:text-gray-200 text-xs md:text-sm">{sub.code}</div>
+                                                                <div className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 uppercase mt-0.5 truncate max-w-[150px] md:max-w-none">{sub.name}</div>
                                                             </td>
-                                                            <td className="p-4">
+                                                            <td className="p-2 md:p-4">
                                                                 <div className="relative">
                                                                     <select
-                                                                        className="w-full appearance-none bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg py-2 px-3 pr-8 font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow cursor-pointer hover:bg-white dark:hover:bg-white/20"
+                                                                        className="w-full appearance-none bg-gray-50 dark:bg-white/10 border border-gray-200 dark:border-white/10 rounded-lg py-1.5 px-2 pr-6 font-bold text-xs md:text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow cursor-pointer hover:bg-white dark:hover:bg-white/20"
                                                                         value={sub.expectedGrade}
                                                                         onChange={(e) => {
                                                                             const newSubs = [...currentSubjects];
@@ -352,17 +358,17 @@ const MyResults = () => {
                                                                             <option key={g} value={g}>{g}</option>
                                                                         ))}
                                                                     </select>
-                                                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                                                                        <ChevronDown className="h-4 w-4" />
+                                                                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-1 text-gray-500">
+                                                                        <ChevronDown className="h-3 w-3" />
                                                                     </div>
                                                                 </div>
                                                             </td>
-                                                            <td className="p-4 text-center">
-                                                                <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 dark:bg-white/10 text-xs font-bold text-gray-600 dark:text-gray-300">
+                                                            <td className="p-2 md:p-4 text-center">
+                                                                <span className="inline-flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full bg-gray-100 dark:bg-white/10 text-[10px] md:text-xs font-bold text-gray-600 dark:text-gray-300">
                                                                     {sub.credits}
                                                                 </span>
                                                             </td>
-                                                            <td className="p-4 text-center font-mono text-gray-600 dark:text-gray-400">
+                                                            <td className="p-2 md:p-4 text-center font-mono text-gray-600 dark:text-gray-400 text-xs md:text-sm">
                                                                 {weight}
                                                             </td>
                                                         </tr>
@@ -375,40 +381,40 @@ const MyResults = () => {
                             </div>
 
                             {/* Right Panel: Results & Stats */}
-                            <div className="lg:col-span-4 space-y-6">
+                            <div className="lg:col-span-4 space-y-4 md:space-y-6 order-1 lg:order-2">
                                 {/* Main Results Card */}
                                 <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-3xl p-6 text-white shadow-xl shadow-indigo-500/20 relative overflow-hidden">
                                     {/* Background Decor */}
                                     <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-3xl"></div>
                                     <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-48 h-48 rounded-full bg-black/10 blur-3xl"></div>
 
-                                    <h3 className="text-white/80 font-medium text-sm uppercase tracking-wider mb-6">Predicted Performance</h3>
+                                    <h3 className="text-white/80 font-medium text-xs md:text-sm uppercase tracking-wider mb-4 md:mb-6">Predicted Performance</h3>
 
-                                    <div className="grid grid-cols-2 gap-6 mb-6">
+                                    <div className="grid grid-cols-2 gap-4 md:gap-6 mb-4 md:mb-6">
                                         <div className="relative z-10">
-                                            <p className="text-white/60 text-xs font-medium mb-1">Expected SPI</p>
-                                            <p className="text-4xl font-extrabold tracking-tight">{expSPI}</p>
+                                            <p className="text-white/60 text-[10px] md:text-xs font-medium mb-1">Expected SPI</p>
+                                            <p className="text-3xl md:text-4xl font-extrabold tracking-tight">{expSPI}</p>
                                         </div>
                                         <div className="relative z-10">
-                                            <p className="text-indigo-200 text-xs font-medium mb-1">Total Credits</p>
-                                            <p className="text-4xl font-extrabold tracking-tight">{currentSemCredits}</p>
+                                            <p className="text-indigo-200 text-[10px] md:text-xs font-medium mb-1">Total Credits</p>
+                                            <p className="text-3xl md:text-4xl font-extrabold tracking-tight">{currentSemCredits}</p>
                                         </div>
                                     </div>
 
-                                    <div className="pt-6 border-t border-white/20 relative z-10">
-                                        <p className="text-white/80 text-xs font-medium mb-1 uppercase">Expected Cumulative CPI</p>
+                                    <div className="pt-4 md:pt-6 border-t border-white/20 relative z-10">
+                                        <p className="text-white/80 text-[10px] md:text-xs font-medium mb-1 uppercase">Expected Cumulative CPI</p>
                                         <div className="flex items-baseline gap-2">
-                                            <p className="text-6xl font-black tracking-tight">{expCPI}</p>
-                                            <span className="text-indigo-200 font-medium">/ 10.0</span>
+                                            <p className="text-5xl md:text-6xl font-black tracking-tight">{expCPI}</p>
+                                            <span className="text-indigo-200 font-medium text-sm">/ 10.0</span>
                                         </div>
                                     </div>
                                 </div>
 
                                 {/* Historical Data Snippet */}
-                                <div className="bg-gray-50 dark:bg-white/5 rounded-2xl p-6 border border-gray-200 dark:border-white/10">
-                                    <h4 className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Academic History</h4>
-                                    <div className="space-y-4">
-                                        <div className="flex justify-between items-center">
+                                <div className="bg-gray-50 dark:bg-white/5 rounded-2xl p-4 md:p-6 border border-gray-200 dark:border-white/10">
+                                    <h4 className="text-xs md:text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-4">Academic History</h4>
+                                    <div className="space-y-3 md:space-y-4">
+                                        <div className="flex justify-between items-center text-sm">
                                             <span className="text-gray-600 dark:text-gray-300">Previous CPI</span>
                                             <input
                                                 type="number"
@@ -417,10 +423,10 @@ const MyResults = () => {
                                                 max="10"
                                                 value={stats.cpi}
                                                 onChange={(e) => setStats({ ...stats, cpi: parseFloat(e.target.value) || 0 })}
-                                                className="w-24 bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded px-2 py-1 text-right font-mono font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-20 md:w-24 bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded px-2 py-1 text-right font-mono font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
-                                        <div className="flex justify-between items-center">
+                                        <div className="flex justify-between items-center text-sm">
                                             <span className="text-gray-600 dark:text-gray-300">Credits Earned</span>
                                             <input
                                                 type="number"
@@ -428,10 +434,10 @@ const MyResults = () => {
                                                 min="0"
                                                 value={stats.totalCredits}
                                                 onChange={(e) => setStats({ ...stats, totalCredits: parseFloat(e.target.value) || 0 })}
-                                                className="w-24 bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded px-2 py-1 text-right font-mono font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                                className="w-20 md:w-24 bg-white dark:bg-black/20 border border-gray-200 dark:border-white/10 rounded px-2 py-1 text-right font-mono font-bold text-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
-                                        <div className="flex justify-between items-center">
+                                        <div className="flex justify-between items-center text-sm">
                                             <span className="text-gray-600 dark:text-gray-300">Points Earned</span>
                                             <span className="font-mono font-bold text-gray-800 dark:text-white">{(stats.cpi * stats.totalCredits).toFixed(1)}</span>
                                         </div>
@@ -439,7 +445,7 @@ const MyResults = () => {
                                 </div>
 
                                 {/* Info */}
-                                <div className="text-xs text-gray-400 text-center leading-relaxed px-4">
+                                <div className="text-[10px] md:text-xs text-gray-400 text-center leading-relaxed px-4 hidden md:block">
                                     Calculation assumes standard credit weighting.
                                     <br />
                                     CPI = (Total Weighted Points) / (Total Credits)
