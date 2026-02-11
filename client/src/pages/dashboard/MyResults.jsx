@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { Calculator, X, Printer, Menu } from 'lucide-react';
+import { Calculator, X, Printer, Menu, ChevronDown, ChevronUp } from 'lucide-react';
 import {
     BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
     PieChart, Pie, Cell
@@ -12,6 +12,11 @@ const MyResults = () => {
     const [results, setResults] = useState([]);
     const [loading, setLoading] = useState(true);
     const [showCalculator, setShowCalculator] = useState(false);
+    const [expandedSemesters, setExpandedSemesters] = useState({});
+
+    const toggleSem = (sem) => {
+        setExpandedSemesters(prev => ({ ...prev, [sem]: !prev[sem] }));
+    };
 
     // Previous Academic Data
     const [stats, setStats] = useState({ cpi: 0, totalCredits: 0 });
@@ -178,12 +183,64 @@ const MyResults = () => {
 
             {/* Previous Semesters List */}
             <div className="space-y-4">
-                {Object.keys(resultsBySem).map(sem => (
-                    <div key={sem} className="bg-white dark:bg-[#121212] p-4 rounded-xl shadow-sm border-l-4 border-green-400">
-                        <div className="flex justify-between items-center cursor-pointer">
-                            <h3 className="text-blue-400 font-medium">Semester -{sem}</h3>
-                            <span className="text-gray-400 text-sm">Click to Expand</span>
+                {Object.keys(resultsBySem).sort().reverse().map(sem => (
+                    <div key={sem} className="bg-white dark:bg-[#121212] p-4 rounded-xl shadow-sm border-l-4 border-green-400 overflow-hidden transition-all duration-300">
+                        <div
+                            className="flex justify-between items-center cursor-pointer"
+                            onClick={() => toggleSem(sem)}
+                        >
+                            <h3 className="text-blue-500 font-bold text-lg">Semester {sem}</h3>
+                            <span className="text-gray-400 text-sm flex items-center gap-1">
+                                {expandedSemesters[sem] ? (
+                                    <>Collapse <ChevronUp className="h-4 w-4" /></>
+                                ) : (
+                                    <>Expand <ChevronDown className="h-4 w-4" /></>
+                                )}
+                            </span>
                         </div>
+
+                        {/* Collapsible Content */}
+                        {expandedSemesters[sem] && (
+                            <div className="mt-4 animate-fade-in border-t border-gray-100 dark:border-white/5 pt-4">
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm text-left">
+                                        <thead className="text-xs text-gray-500 uppercase bg-gray-50 dark:bg-white/5">
+                                            <tr>
+                                                <th className="px-4 py-3 rounded-l-lg">Subject Code</th>
+                                                <th className="px-4 py-3">Subject Name</th>
+                                                <th className="px-4 py-3 text-center">Grade</th>
+                                                <th className="px-4 py-3 text-center rounded-r-lg">Credits</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-100 dark:divide-white/5">
+                                            {resultsBySem[sem].map((result, idx) => (
+                                                <tr key={idx} className="hover:bg-gray-50 dark:hover:bg-white/5 transition">
+                                                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-white whitespace-nowrap">{result.subCode}</td>
+                                                    <td className="px-4 py-3 text-gray-600 dark:text-gray-300 min-w-[200px]">{result.subName}</td>
+                                                    <td className="px-4 py-3 text-center">
+                                                        <span className={`px-2 py-1 rounded-md text-xs font-bold ${['O', 'A+', 'A'].includes(result.grade) ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                                            ['F'].includes(result.grade) ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                                                'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                                                            }`}>
+                                                            {result.grade}
+                                                        </span>
+                                                    </td>
+                                                    <td className="px-4 py-3 text-center text-gray-500 dark:text-gray-400 font-medium">{result.credits}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                        <tfoot className="border-t border-gray-200 dark:border-white/10">
+                                            <tr>
+                                                <td colSpan="3" className="px-4 py-3 text-right font-bold text-gray-700 dark:text-gray-300">Total Credits:</td>
+                                                <td className="px-4 py-3 text-center font-bold text-indigo-600 dark:text-indigo-400">
+                                                    {resultsBySem[sem].reduce((sum, r) => sum + (Number(r.credits) || 0), 0)}
+                                                </td>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>

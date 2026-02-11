@@ -124,12 +124,11 @@ const Profile = () => {
                                             name="phone"
                                             value={formData.phone}
                                             onChange={handleChange}
-                                            className="w-full pl-10 p-3 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                            placeholder="+91 98765 43210"
+                                            className="w-full pl-9 p-2.5 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500/20 outline-none"
+                                            placeholder="+91..."
                                         />
                                     </div>
                                 </div>
-
                                 <div>
                                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Address</label>
                                     <div className="relative">
@@ -145,44 +144,10 @@ const Profile = () => {
                                     </div>
                                 </div>
                             </div>
-
-                            <hr className="border-gray-100 dark:border-gray-700" />
-
-                            <div>
-                                <h4 className="text-sm font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
-                                    <Key className="h-4 w-4" /> Change Password (Optional)
-                                </h4>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <div>
-                                        <input
-                                            type="password"
-                                            name="newPassword"
-                                            value={formData.newPassword}
-                                            onChange={handleChange}
-                                            className="w-full p-3 rounded-xl border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                                            placeholder="New Password"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end pt-4">
-                                <button
-                                    type="submit"
-                                    disabled={loading}
-                                    className="bg-indigo-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 dark:shadow-none flex items-center gap-2"
-                                >
-                                    <Save className="h-5 w-5" />
-                                    {loading ? 'Saving...' : 'Save Changes'}
-                                </button>
-                            </div>
                         </form>
                     </div>
                 </div>
             </div>
-            {showIDCard && (
-                <IDCard student={user} onClose={() => setShowIDCard(false)} />
-            )}
         </div>
     );
 };

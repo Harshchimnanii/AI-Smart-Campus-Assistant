@@ -223,7 +223,7 @@ router.put('/:id/profile', protect, async (req, res) => {
 
         // Update fields
         const fieldsToUpdate = [
-            'name', 'email', 'rollNumber', 'department', 'year', 'section',
+            'name', 'email', 'phone', 'rollNumber', 'department', 'year', 'section',
             'regNo', 'univRollNo', 'fatherName', 'motherName',
             'address', 'permanentAddress', 'dob', 'gender', 'category', 'bloodGroup',
             'fileNo', 'libCode', 'placementStatus'

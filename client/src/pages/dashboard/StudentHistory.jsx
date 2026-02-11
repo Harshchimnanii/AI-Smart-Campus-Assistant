@@ -52,27 +52,35 @@ const StudentHistory = () => {
     }, [user]);
 
     const handleOpenProfileModal = () => {
-        if (selectedStudent) {
-            setProfileData({
-                name: selectedStudent.name || '',
-                firstName: selectedStudent.name?.split(' ')[0] || '', // just in case
-                rollNumber: selectedStudent.rollNumber || '',
-                regNo: selectedStudent.regNo || '',
-                univRollNo: selectedStudent.univRollNo || '',
-                fatherName: selectedStudent.fatherName || '',
-                motherName: selectedStudent.motherName || '',
-                address: selectedStudent.address || '',
-                dob: selectedStudent.dob ? new Date(selectedStudent.dob).toISOString().split('T')[0] : '',
-                gender: selectedStudent.gender || 'Male',
-                category: selectedStudent.category || 'GEN',
-                bloodGroup: selectedStudent.bloodGroup || '',
-                section: selectedStudent.section || '',
-                fileNo: selectedStudent.fileNo || '',
-                libCode: selectedStudent.libCode || '',
-                hsPercentage: selectedStudent.highSchool?.percentage || '',
-                interPercentage: selectedStudent.intermediate?.percentage || ''
-            });
-            setShowProfileModal(true);
+        try {
+            if (selectedStudent) {
+                setProfileData({
+                    name: selectedStudent.name || '',
+                    firstName: selectedStudent.name?.split(' ')[0] || '', // just in case
+                    rollNumber: selectedStudent.rollNumber || '',
+                    regNo: selectedStudent.regNo || '',
+                    univRollNo: selectedStudent.univRollNo || '',
+                    fatherName: selectedStudent.fatherName || '',
+                    motherName: selectedStudent.motherName || '',
+                    address: selectedStudent.address || '',
+                    dob: selectedStudent.dob ? new Date(selectedStudent.dob).toISOString().split('T')[0] : '',
+                    gender: selectedStudent.gender || 'Male',
+                    category: selectedStudent.category || 'GEN',
+                    bloodGroup: selectedStudent.bloodGroup || '',
+                    section: selectedStudent.section || '',
+                    fileNo: selectedStudent.fileNo || '',
+                    libCode: selectedStudent.libCode || '',
+                    mobile: selectedStudent.phone || '',
+                    email: selectedStudent.email || '',
+                    placementStatus: selectedStudent.placementStatus || 'Unplaced',
+                    hsPercentage: selectedStudent.highSchool?.percentage || '',
+                    interPercentage: selectedStudent.intermediate?.percentage || ''
+                });
+                setShowProfileModal(true);
+            }
+        } catch (error) {
+            console.error("Error opening profile modal:", error);
+            alert(`Error opening modal: ${error.message}`);
         }
     };
 
@@ -84,6 +92,7 @@ const StudentHistory = () => {
 
             const payload = {
                 ...profileData,
+                phone: profileData.mobile, // backend expects 'phone'
                 highSchool: { ...selectedStudent.highSchool, percentage: profileData.hsPercentage },
                 intermediate: { ...selectedStudent.intermediate, percentage: profileData.interPercentage }
             };
@@ -98,7 +107,8 @@ const StudentHistory = () => {
             alert('Profile Updated Successfully');
         } catch (error) {
             console.error(error);
-            alert('Failed to update profile');
+            const msg = error.response?.data?.message || error.message || 'Unknown error';
+            alert(`Failed to update profile: ${msg}`);
         } finally {
             setFormLoading(false);
         }
@@ -208,7 +218,7 @@ const StudentHistory = () => {
 
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                 {/* Left Column: Student List & Search (Reduced width) */}
-                <div className="lg:col-span-1 space-y-4">
+                <div className={`lg:col-span-1 space-y-4 ${selectedStudent ? 'hidden lg:block' : 'block'}`}>
                     {/* ... Search & List (Keep existing code) ... */}
                     <div className="bg-white/60 dark:bg-[#121212]/60 backdrop-blur-xl p-4 rounded-2xl shadow-sm border border-white/20 dark:border-white/10">
                         <div className="relative">
@@ -246,6 +256,7 @@ const StudentHistory = () => {
                                                 <p className="text-[10px] text-gray-500 dark:text-gray-400">{student.rollNumber || 'N/A'}</p>
                                             </div>
                                         </div>
+                                        <ChevronRight className="h-4 w-4 text-gray-400" />
                                     </button>
                                 ))}
                             </div>
@@ -254,9 +265,16 @@ const StudentHistory = () => {
                 </div>
 
                 {/* Right Column: Detailed View (Expanded width) */}
-                <div className="lg:col-span-3">
+                <div className={`lg:col-span-3 ${!selectedStudent ? 'hidden lg:block' : 'block'}`}>
                     {selectedStudent ? (
                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4">
+                            {/* Mobile Back Button */}
+                            <button
+                                onClick={() => setSelectedStudent(null)}
+                                className="lg:hidden flex items-center gap-2 text-gray-500 hover:text-indigo-600 transition mb-2"
+                            >
+                                <ChevronRight className="h-4 w-4 rotate-180" /> Back to List
+                            </button>
                             {/* Detailed Profile Card (GLAMS Style) */}
                             <div className="bg-white/80 dark:bg-[#121212]/80 backdrop-blur-xl p-6 rounded-2xl shadow-sm border border-white/20 dark:border-white/10 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 p-4 opacity-10">
@@ -648,7 +666,7 @@ const StudentHistory = () => {
             )}
             {/* Profile Edit Modal */}
             {showProfileModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
                     <div className="bg-white/90 dark:bg-[#1a1a1a]/90 backdrop-blur-2xl w-full max-w-2xl rounded-2xl p-6 shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto border border-white/20 dark:border-white/10">
                         <div className="flex justify-between items-center mb-6">
                             <h3 className="text-xl font-bold dark:text-white flex items-center gap-2">
@@ -704,6 +722,19 @@ const StudentHistory = () => {
                             <div className="md:col-span-2">
                                 <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Address</label>
                                 <textarea className="input-field" rows="2" value={profileData.address} onChange={(e) => setProfileData({ ...profileData, address: e.target.value })}></textarea>
+                            </div>
+
+                            {/* Contact Details */}
+                            <div className="md:col-span-2 mt-2">
+                                <h4 className="font-semibold text-gray-500 mb-2 border-b pb-1">Contact Info</h4>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Mobile No</label>
+                                <input type="text" className="input-field" value={profileData.mobile} onChange={(e) => setProfileData({ ...profileData, mobile: e.target.value })} />
+                            </div>
+                            <div>
+                                <label className="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">Email ID</label>
+                                <input type="email" className="input-field" value={profileData.email} onChange={(e) => setProfileData({ ...profileData, email: e.target.value })} />
                             </div>
 
                             {/* Academic Details */}
