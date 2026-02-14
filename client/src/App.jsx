@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -41,60 +42,63 @@ import AdminLogin from './pages/AdminLogin';
 const Placeholder = ({ title }) => <div className="p-4"><h1 className="text-2xl font-bold dark:text-white">{title}</h1></div>;
 
 function App() {
+
+
   return (
-    <AuthProvider>
-      <ThemeProvider>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="/forgot-password" element={<ForgotPassword />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
+    <>
+      <AuthProvider>
+        <ThemeProvider>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/admin/login" element={<AdminLogin />} />
 
-          {/* Protected Routes - Global Layout Access */}
-          <Route element={<ProtectedRoute allowedRoles={['student', 'teacher', 'admin', 'ceo', 'faculty']} />}>
-            <Route element={<Layout />}>
-              {/* Dashboard handled by dispatcher component */}
-              <Route path="/dashboard" element={<Dashboard />} />
+            {/* Protected Routes - Global Layout Access */}
+            <Route element={<ProtectedRoute allowedRoles={['student', 'teacher', 'admin', 'ceo', 'faculty']} />}>
+              <Route element={<Layout />}>
+                {/* Dashboard handled by dispatcher component */}
+                <Route path="/dashboard" element={<Dashboard />} />
 
-              {/* Common Student/Faculty Routes */}
-              <Route path="/dashboard/notices" element={<Notices />} />
-              <Route path="/dashboard/complaints" element={<Complaints />} />
-              <Route path="/dashboard/mess" element={<MessMenu />} />
-              <Route path="/dashboard/chat" element={<ChatAssistant />} />
-              <Route path="/dashboard/assignments" element={<Assignments />} />
-              <Route path="/dashboard/profile" element={<Profile />} />
+                {/* Common Student/Faculty Routes */}
+                <Route path="/dashboard/notices" element={<Notices />} />
+                <Route path="/dashboard/complaints" element={<Complaints />} />
+                <Route path="/dashboard/mess" element={<MessMenu />} />
+                <Route path="/dashboard/chat" element={<ChatAssistant />} />
+                <Route path="/dashboard/assignments" element={<Assignments />} />
+                <Route path="/dashboard/profile" element={<Profile />} />
 
-              {/* Student Specific */}
-              <Route path="/dashboard/academics" element={<Academics />} />
-              <Route path="/dashboard/results" element={<MyResults />} />
-              <Route path="/dashboard/attendance" element={<Attendance />} />
+                {/* Student Specific */}
+                <Route path="/dashboard/academics" element={<Academics />} />
+                <Route path="/dashboard/results" element={<MyResults />} />
+                <Route path="/dashboard/attendance" element={<Attendance />} />
 
-              {/* Teacher Only Routes */}
-              <Route element={<ProtectedRoute allowedRoles={['teacher', 'admin', 'ceo', 'faculty']} />}>
-                <Route path="/dashboard/attendance/take" element={<TakeAttendance />} />
-                <Route path="/dashboard/classes" element={<ClassMapping />} />
-                <Route path="/dashboard/schedule" element={<ManageSchedule />} />
-                <Route path="/dashboard/marks/upload" element={<UploadMarks />} />
-                <Route path="/dashboard/student-history" element={<StudentHistory />} />
-                <Route path="/dashboard/admin/notices" element={<AdminNotices />} />
-                <Route path="/dashboard/admin/complaints" element={<AdminComplaints />} />
+                {/* Teacher Only Routes */}
+                <Route element={<ProtectedRoute allowedRoles={['teacher', 'admin', 'ceo', 'faculty']} />}>
+                  <Route path="/dashboard/attendance/take" element={<TakeAttendance />} />
+                  <Route path="/dashboard/classes" element={<ClassMapping />} />
+                  <Route path="/dashboard/schedule" element={<ManageSchedule />} />
+                  <Route path="/dashboard/marks/upload" element={<UploadMarks />} />
+                  <Route path="/dashboard/student-history" element={<StudentHistory />} />
+                  <Route path="/dashboard/admin/notices" element={<AdminNotices />} />
+                  <Route path="/dashboard/admin/complaints" element={<AdminComplaints />} />
+                </Route>
+
+                {/* Admin/CEO Routes */}
+                <Route element={<ProtectedRoute allowedRoles={['admin', 'ceo']} />}>
+                  <Route path="/dashboard/users" element={<UserManagement />} />
+                  <Route path="/dashboard/admin/sections" element={<SectionManagement />} />
+                  <Route path="/dashboard/admin/id-logs" element={<IDCardLogs />} />
+                </Route>
+
+                <Route path="/dashboard/career" element={<Placeholder title="Career Guide" />} />
               </Route>
-
-              {/* Admin/CEO Routes */}
-              <Route element={<ProtectedRoute allowedRoles={['admin', 'ceo']} />}>
-                <Route path="/dashboard/users" element={<UserManagement />} />
-                <Route path="/dashboard/users" element={<UserManagement />} />
-                <Route path="/dashboard/admin/sections" element={<SectionManagement />} />
-                <Route path="/dashboard/admin/id-logs" element={<IDCardLogs />} />
-              </Route>
-
-              <Route path="/dashboard/career" element={<Placeholder title="Career Guide" />} />
+              <Route path="/" element={<Navigate to="/dashboard" replace />} />
             </Route>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-          </Route>
-        </Routes>
-      </ThemeProvider>
-    </AuthProvider>
+          </Routes>
+        </ThemeProvider>
+      </AuthProvider>
+    </>
   );
 }
 

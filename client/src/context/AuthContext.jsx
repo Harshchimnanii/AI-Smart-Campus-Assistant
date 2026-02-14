@@ -57,13 +57,30 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const sendRegistrationOTP = async (email) => {
+        try {
+            const config = {
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            };
+            await axios.post(`${API_URL}/api/auth/send-register-otp`, { email }, config);
+            return { success: true };
+        } catch (error) {
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Failed to send OTP'
+            };
+        }
+    };
+
     const logout = () => {
         localStorage.removeItem('userInfo');
         setUser(null);
     };
 
     return (
-        <AuthContext.Provider value={{ user, setUser, login, register, logout, loading }}>
+        <AuthContext.Provider value={{ user, setUser, login, register, sendRegistrationOTP, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

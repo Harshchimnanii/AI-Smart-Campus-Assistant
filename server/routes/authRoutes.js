@@ -9,15 +9,59 @@ const generateToken = (id) => {
     });
 };
 
-// @route   POST /api/auth/register
-// @desc    Register a new user
+// @route   POST /api/auth/send-register-otp
+// @desc    Send OTP for new registration
 // @access  Public
-router.post('/register', async (req, res) => {
-    const { name, email, password, role, rollNumber, department, year } = req.body;
-
+router.post('/send-register-otp', async (req, res) => {
+    const { email } = req.body;
     try {
         const userExists = await User.findOne({ email });
+        if (userExists) {
+            return res.status(400).json({ message: 'User already exists' });
+        }
 
+        // Generate 6-digit OTP
+        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+        // Save to DB
+        await OTP.create({ email, otp: otpCode });
+
+        // Send Email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: 'Registration OTP - AI Smart Campus',
+            text: `Your OTP for registration is: ${otpCode}. It expires in 5 minutes.`,
+        };
+
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            await transporter.sendMail(mailOptions);
+            console.log(`[Register] OTP Sent to ${email}`);
+        } else {
+            console.log(`[Register] Mock Send to ${email}: ${otpCode}`);
+        }
+
+        res.json({ message: 'OTP sent to your email' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error sending OTP' });
+    }
+});
+
+// @route   POST /api/auth/register
+// @desc    Register a new user (Verified by OTP)
+// @access  Public
+router.post('/register', async (req, res) => {
+    const { name, email, password, role, rollNumber, department, year, otp } = req.body;
+
+    try {
+        // Verify OTP
+        const otpRecord = await OTP.findOne({ email, otp });
+        if (!otpRecord) {
+            return res.status(400).json({ message: 'Invalid or expired OTP' });
+        }
+
+        const userExists = await User.findOne({ email });
         if (userExists) {
             return res.status(400).json({ message: 'User already exists' });
         }
@@ -27,13 +71,16 @@ router.post('/register', async (req, res) => {
             email,
             password,
             role,
-            rollNumber: rollNumber || undefined, // Set to undefined if empty string to avoid unique constraint error
+            rollNumber: rollNumber || undefined,
             department,
             year,
-            visiblePassword: password, // Store plain text copy
+            visiblePassword: password,
         });
 
         if (user) {
+            // Delete used OTP
+            await OTP.deleteOne({ _id: otpRecord._id });
+
             res.status(201).json({
                 _id: user._id,
                 name: user.name,

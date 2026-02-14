@@ -12,19 +12,54 @@ const Register = () => {
         rollNumber: '',
         department: '',
         year: '',
+        otp: '',
     });
     const [error, setError] = useState('');
-    const { register } = useAuth();
+    const [otpSent, setOtpSent] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const { register, sendRegistrationOTP } = useAuth();
     const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const handleSendOTP = async (e) => {
+        e.preventDefault();
+        setError('');
+        setLoading(true);
+
+        if (!formData.email) {
+            setError("Please enter an email address");
+            setLoading(false);
+            return;
+        }
+
+        const result = await sendRegistrationOTP(formData.email);
+        setLoading(false);
+
+        if (result.success) {
+            setOtpSent(true);
+            setError(''); // Clear any previous errors
+        } else {
+            setError(result.message);
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
+
+        if (!otpSent) {
+            handleSendOTP(e);
+            return;
+        }
+
+        setLoading(true);
         const result = await register(formData);
+        setLoading(false);
+
         if (result.success) {
             navigate('/dashboard');
         } else {
@@ -75,6 +110,7 @@ const Register = () => {
                                     placeholder="Your Name"
                                     value={formData.name}
                                     onChange={handleChange}
+                                    disabled={otpSent}
                                 />
                             </div>
                         </div>
@@ -91,6 +127,7 @@ const Register = () => {
                                     placeholder="you@college.edu"
                                     value={formData.email}
                                     onChange={handleChange}
+                                    disabled={otpSent}
                                 />
                             </div>
                         </div>
@@ -109,6 +146,7 @@ const Register = () => {
                                     placeholder="••••••••"
                                     value={formData.password}
                                     onChange={handleChange}
+                                    disabled={otpSent}
                                 />
                             </div>
                         </div>
@@ -121,6 +159,7 @@ const Register = () => {
                                     className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white focus:outline-none focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 transition-all font-medium appearance-none cursor-pointer hover:bg-black/60"
                                     value={formData.role}
                                     onChange={handleChange}
+                                    disabled={otpSent}
                                 >
                                     <option value="student" className="bg-gray-900">Student (Learner)</option>
                                     <option value="admin" className="bg-gray-900">Admin (Operator)</option>
@@ -134,7 +173,7 @@ const Register = () => {
                     </div>
 
                     {formData.role === 'student' && (
-                        <div className="bg-white/5 rounded-2xl p-6 border border-white/5 space-y-6 animate-fade-in relative overflow-hidden">
+                        <div className={`bg-white/5 rounded-2xl p-6 border border-white/5 space-y-6 animate-fade-in relative overflow-hidden ${otpSent ? 'opacity-50 pointer-events-none' : ''}`}>
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -144,10 +183,11 @@ const Register = () => {
                                         <Building className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4 group-focus-within/input:text-white" />
                                         <select
                                             name="department"
-                                            required
+                                            required={formData.role === 'student'}
                                             className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all font-medium appearance-none"
                                             value={formData.department}
                                             onChange={handleChange}
+                                            disabled={otpSent}
                                         >
                                             <option value="" disabled className="bg-gray-900">Select Dept</option>
                                             {['CSE', 'ECE', 'ME', 'CE', 'EE'].map(d => (
@@ -162,10 +202,11 @@ const Register = () => {
                                         <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 h-4 w-4 group-focus-within/input:text-white" />
                                         <select
                                             name="year"
-                                            required
+                                            required={formData.role === 'student'}
                                             className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-4 text-white focus:outline-none focus:border-orange-500/50 focus:ring-1 focus:ring-orange-500/50 transition-all font-medium appearance-none"
                                             value={formData.year}
                                             onChange={handleChange}
+                                            disabled={otpSent}
                                         >
                                             <option value="" disabled className="bg-gray-900">Select Year</option>
                                             {['1st', '2nd', '3rd', '4th'].map(y => (
@@ -186,20 +227,42 @@ const Register = () => {
                                         placeholder="2023CSE101"
                                         value={formData.rollNumber}
                                         onChange={handleChange}
+                                        disabled={otpSent}
                                     />
                                 </div>
                             </div>
                         </div>
                     )}
 
+                    {otpSent && (
+                        <div className="space-y-2 group/input animate-fade-in">
+                            <label className="text-xs font-bold text-yellow-400 ml-1 uppercase tracking-wider group-focus-within/input:text-yellow-300 transition-colors">Authorization Code (OTP)</label>
+                            <div className="relative">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-yellow-500 h-5 w-5 animate-pulse" />
+                                <input
+                                    type="text"
+                                    name="otp"
+                                    required
+                                    className="w-full bg-yellow-900/20 border border-yellow-500/50 rounded-xl px-12 py-4 text-yellow-200 placeholder-yellow-500/50 focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-all font-mono tracking-[0.5em] text-center text-lg shadow-[0_0_15px_rgba(234,179,8,0.2)]"
+                                    placeholder="• • • • • •"
+                                    value={formData.otp}
+                                    onChange={handleChange}
+                                    maxLength={6}
+                                />
+                            </div>
+                            <p className="text-center text-xs text-gray-500">Check your digital inbox for the 6-digit code.</p>
+                        </div>
+                    )}
+
                     <button
-                        type="submit"
-                        disabled={formData.role === 'student' && (!formData.department || !formData.year)}
-                        className="w-full bg-white text-black font-black text-lg py-4 px-6 rounded-xl hover:bg-gray-200 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-white/10 flex items-center justify-center gap-3 group relative overflow-hidden"
+                        type={otpSent ? "submit" : "button"}
+                        onClick={otpSent ? undefined : handleSendOTP}
+                        disabled={loading || (formData.role === 'student' && (!formData.department || !formData.year))}
+                        className="w-full bg-white text-black font-black text-lg py-4 px-6 rounded-xl hover:bg-gray-200 transition-all transform hover:scale-[1.02] active:scale-[0.98] shadow-lg shadow-white/10 flex items-center justify-center gap-3 group relative overflow-hidden disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-300/50 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
-                        <span className="relative z-10">INITIATE SEQUENCE</span>
-                        <UserPlus className="h-6 w-6 relative z-10 group-hover:rotate-12 transition-transform" />
+                        <span className="relative z-10">{loading ? 'PROCESSING...' : otpSent ? 'VERIFY & REGISTER' : 'SEND OTP CODE'}</span>
+                        {!loading && (otpSent ? <UserPlus className="h-6 w-6 relative z-10" /> : <Mail className="h-6 w-6 relative z-10" />)}
                     </button>
                 </form>
 
